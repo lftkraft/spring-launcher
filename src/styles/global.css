@@ -1,0 +1,432 @@
+/* ============================================
+   SPRING LAUNCHER - SÖTÉT TÉMA
+   ============================================ */
+
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --accent-green: #4CAF50;
+  --accent-green-hover: #66BB6A;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  user-select: none;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: transparent;
+  transition: background-color 0.3s ease, filter 0.3s ease;
+}
+
+/* FÓKUSZÁLT ÁLLAPOT - Átlátszó blur */
+.main-view {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: rgba(10, 10, 10, 0.4); /* Fókuszált, sötét de átlátszó */
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+/* NEM FÓKUSZÁLT ÁLLAPOT (UNFOCUSED) */
+.app-container.unfocused .main-view,
+.app-container.unfocused .sidebar {
+  background-color: rgba(20, 20, 20, 0.98) !important; /* Szinte teljesen tömör sötétszürke */
+  backdrop-filter: blur(5px) !important; /* Minimális blur */
+}
+
+/* MODAL NYITVA */
+body.modal-open .app-content,
+body.modal-open .sidebar {
+  filter: blur(8px) brightness(0.6);
+  pointer-events: none;
+}
+
+body.modal-open .main-view {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+  border-radius: 20px; /* Lekerekítve mind a négy sarok */
+  margin-right: 12px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: filter 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    margin-right: 6px;
+    margin-bottom: 6px;
+    border-radius: 14px;
+  }
+}
+
+/* SCROLLBARS */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
+.custom-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(0, 0, 0, 0.2) !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  display: block !important;
+  width: 8px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28) !important;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-green) !important;
+}
+
+/* ============================================
+   MEMORY RANGE SLIDER & CONTROLS
+   ============================================ */
+.memory-control-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+
+.memory-control-wrapper:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.memory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.memory-header label {
+  margin-bottom: 0 !important;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.memory-display-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.memory-display-box:focus-within {
+  border-color: var(--accent-green);
+}
+
+.memory-number-input {
+  width: 65px !important;
+  padding: 2px 4px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  text-align: right;
+  outline: none !important;
+  -moz-appearance: textfield;
+}
+
+.memory-number-input::-webkit-outer-spin-button,
+.memory-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.memory-unit {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.memory-gb-pill {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-green);
+  background: rgba(76, 175, 80, 0.12);
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  white-space: nowrap;
+}
+
+.range-slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.ram-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ram-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid var(--accent-green);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ram-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px rgba(76, 175, 80, 0.9), 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ram-slider::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+.ram-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid var(--accent-green);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ram-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px rgba(76, 175, 80, 0.9), 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ram-slider::-moz-range-thumb:active {
+  transform: scale(0.95);
+}
+
+.slider-track-container {
+  position: relative;
+  width: 100%;
+  padding-top: 48px;
+}
+
+.slider-thumb-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background: rgba(18, 18, 18, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 14px rgba(76, 175, 80, 0.25);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: left 0.05s ease-out;
+}
+
+.slider-thumb-tooltip .tooltip-gb {
+  color: var(--accent-green);
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.slider-thumb-tooltip .tooltip-mb {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.slider-thumb-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(18, 18, 18, 0.96) transparent transparent transparent;
+}
+
+.slider-marks-container {
+  position: relative;
+  width: 100%;
+  height: 28px;
+  margin-top: 4px;
+}
+
+.slider-mark-btn {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.slider-mark-btn .mark-pip {
+  width: 2px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+  transition: all 0.2s ease;
+}
+
+.slider-mark-btn .mark-text {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.slider-mark-btn:hover {
+  color: #fff;
+}
+
+.slider-mark-btn:hover .mark-pip {
+  background: rgba(255, 255, 255, 0.6);
+  height: 8px;
+}
+
+.slider-mark-btn.active {
+  color: var(--accent-green);
+}
+
+.slider-mark-btn.active .mark-pip {
+  background: var(--accent-green);
+  height: 8px;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+}
+
+.memory-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.memory-preset-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.memory-preset-btn:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.memory-preset-btn.active {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
+}
+
+.fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

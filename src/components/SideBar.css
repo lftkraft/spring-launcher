@@ -1,0 +1,203 @@
+.sidebar {
+  width: 64px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  gap: 8px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s ease,
+              opacity 0.3s ease,
+              filter 0.3s ease;
+  z-index: 1100;
+
+  background-color: rgba(30, 30, 30, 0.8);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+
+  overflow: hidden; /* Ez vágja le a túllógó részeket */
+  position: relative;
+  flex-shrink: 0;
+  border-right: none;
+}
+
+body.modal-open .sidebar {
+  opacity: 0.4;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.sidebar:hover { width: 220px; }
+
+.sidebar:not(.unfocused) {
+  background-color: rgba(10, 10, 10, 0.4);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
+  margin-top: 48px;
+}
+
+.sidebar-nav.instances-list {
+  margin-top: 4px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav.instances-list::-webkit-scrollbar { display: none; }
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  width: 100%; /* Kitölti a rendelkezésre álló helyet, de a szülő levágja */
+  overflow: hidden;
+}
+
+.sidebar-item svg { min-width: 20px; }
+.sidebar-item span { opacity: 0; transition: opacity 0.2s ease; font-size: 14px; font-weight: 500; }
+.sidebar:hover .sidebar-item span { opacity: 1; }
+
+.sidebar-item:hover { background-color: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
+.sidebar-item.active { background-color: rgba(76, 175, 80, 0.15); color: var(--accent-green); }
+
+.sidebar-section-label {
+  padding: 0 22px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 20px;
+  margin-top: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar:hover .sidebar-section-label { opacity: 1; }
+
+.add-instance-small-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.add-instance-small-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--accent-green);
+}
+
+.instance-icon-small {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.instance-icon-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-item.add-btn {
+  color: var(--accent-green);
+  margin-top: 4px;
+}
+
+.sidebar-item.add-btn:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.sidebar-divider { height: 1px; background: rgba(255, 255, 255, 0.06); margin: 12px 16px; }
+
+.sidebar-footer {
+  padding: 0 12px;
+  margin-top: auto;
+  padding-bottom: 12px;
+}
+
+.sidebar-context-menu {
+  position: fixed;
+  z-index: 99999;
+  min-width: 180px;
+  background: rgba(22, 24, 29, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: contextMenuFadeIn 0.15s ease-out;
+}
+
+@keyframes contextMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.context-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.context-menu-item svg {
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+
+.context-menu-item:hover svg {
+  color: var(--accent-green);
+}

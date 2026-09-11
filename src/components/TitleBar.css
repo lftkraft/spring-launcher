@@ -1,0 +1,215 @@
+.titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  -webkit-app-region: drag;
+  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.5s ease;
+  overflow: hidden;
+  height: 12px; /* Alap magasság 12px-re állítva */
+  width: 100%;
+  background: transparent;
+  z-index: 1000;
+  position: relative;
+  border: none !important;
+}
+
+.titlebar.collapsed {
+  height: 12px; /* Összement állapotban 12px, mint a többi keret */
+}
+
+.titlebar.expanded {
+  height: 48px; /* Kinyitva marad 48px a használhatóság miatt */
+}
+
+/* ============================================
+   BAL OLDAL - LOGÓ + FELIRAT
+   ============================================ */
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-icon {
+  color: #4CAF50;
+  transition: all 0.3s ease;
+}
+
+.titlebar.collapsed .titlebar-icon {
+  opacity: 0;
+  transform: scale(0.5);
+  width: 0;
+}
+
+.titlebar-spring, .titlebar-launcher {
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.titlebar-spring { font-weight: 600; color: #4CAF50; }
+.titlebar-launcher { font-weight: 400; color: #ffffff; }
+
+.titlebar.collapsed .titlebar-spring,
+.titlebar.collapsed .titlebar-launcher {
+  opacity: 0 !important;
+  transform: translateY(-10px);
+  width: 0;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* ============================================
+   JOBB OLDAL - 3 GOMB
+   ============================================ */
+.titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.titlebar.collapsed .titlebar-btn {
+  opacity: 0 !important;
+  transform: scale(0.3);
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none;
+}
+
+.titlebar.expanded .titlebar-btn {
+  opacity: 1;
+  width: 32px;
+  height: 32px;
+}
+
+.titlebar-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.titlebar-btn.minimize svg {
+  width: 18px;
+  height: 18px;
+}
+
+.titlebar-btn:hover { background: rgba(255, 255, 255, 0.08); color: #ffffff; }
+.titlebar-btn.close:hover { background: #e81123; color: #ffffff; }
+
+/* ============================================
+   SPLASH ANIMÁCIÓ
+   ============================================ */
+.titlebar-splash {
+  position: absolute;
+  bottom: 0;
+  left: 32px;
+  right: 48px;
+  height: 3px;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.titlebar-splash-bar {
+  height: 100%;
+  background: #4CAF50;
+  border-radius: 2px;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.splash-bar .titlebar-splash-bar {
+  width: 0%;
+  animation: splashGrow 2s ease-in-out forwards;
+}
+
+@keyframes splashGrow {
+  to { width: 100%; }
+}
+
+.splash-circle .titlebar-splash-bar {
+  animation: splashToCircle 1s ease-in-out forwards;
+  width: 100%;
+}
+
+@keyframes splashToCircle {
+  0% { width: 100%; height: 3px; border-radius: 2px; left: 0; }
+  100% { width: 30px; height: 30px; border-radius: 50%; left: 50%; transform: translate(-50%, 15px); }
+}
+
+.splash-fadeout .titlebar-splash-bar {
+  animation: splashFade 1s ease-in-out forwards;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  left: 50%;
+  transform: translate(-50%, 15px);
+}
+
+@keyframes splashFade {
+  to { opacity: 0; transform: translate(-50%, 15px) scale(1.5); }
+}
+
+/* ============================================
+   UPDATE BADGE
+   ============================================ */
+.titlebar-update-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(147, 51, 234, 0.4));
+  border: 1px solid rgba(192, 132, 252, 0.45);
+  color: #e9d5ff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-right: 6px;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+  animation: pulseBadge 2.5s infinite alternate;
+}
+
+.titlebar-update-badge:hover {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.45), rgba(147, 51, 234, 0.6));
+  border-color: rgba(192, 132, 252, 0.8);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
+  transform: scale(1.04);
+}
+
+.badge-sparkle-icon {
+  color: #c084fc;
+}
+
+.titlebar.collapsed .titlebar-update-badge {
+  opacity: 0 !important;
+  pointer-events: none;
+  transform: scale(0.5);
+}
+
+@keyframes pulseBadge {
+  0% { box-shadow: 0 0 6px rgba(168, 85, 247, 0.2); }
+  100% { box-shadow: 0 0 14px rgba(168, 85, 247, 0.6); }
+}
+
