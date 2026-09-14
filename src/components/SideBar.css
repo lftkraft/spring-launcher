@@ -59,6 +59,11 @@ body.modal-open .sidebar {
   border-radius: 8px;
   color: var(--text-secondary);
   text-decoration: none;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
   transition: background-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
   cursor: pointer;

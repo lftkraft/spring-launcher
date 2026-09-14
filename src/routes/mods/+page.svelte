@@ -16,10 +16,11 @@
   import type { Instance } from '../../types/instance';
   import { showNotification } from '../../stores/notification';
   import { portal } from '../../utils/portal';
+  import { t } from '../../stores/i18n';
   import './ModBrowser.css';
 
   const CATEGORIES = [
-    { id: 'all', name: 'Összes', icon: LayoutGrid },
+    { id: 'all', name: 'All', icon: LayoutGrid },
     { id: 'optimization', name: 'Optimization', icon: Zap },
     { id: 'utility', name: 'Utility', icon: Wrench },
     { id: 'adventure', name: 'Adventure', icon: Sword },
@@ -44,7 +45,7 @@
   const TECHNICAL_TAGS = ['fabric', 'forge', 'quilt', 'neoforge', 'liteloader', 'modloader', 'rift'];
 
   const LOADERS = [
-    { id: 'all', name: 'Összes loader', icon: null },
+    { id: 'all', name: 'All loaders', icon: null },
     { id: 'neoforge', name: 'NeoForge', icon: '/loaders/neoforge.svg' },
     { id: 'forge', name: 'Forge', icon: '/loaders/forge.png' },
     { id: 'fabric', name: 'Fabric', icon: '/loaders/fabric.svg' },
@@ -370,7 +371,7 @@
       mods = result.hits || [];
       totalHits = result.total_hits || 0;
     } catch (err) {
-      showNotification(`Hiba a keresés során: ${err}`, 'error');
+      showNotification(`${$t('detail.error')}: ${err}`, 'error');
     } finally {
       loading = false;
     }
@@ -461,7 +462,7 @@
     if (!selectedMod || !selectedVersion) return;
     showModpackNewModal = false;
     showModpackProgressModal = true;
-    modpackProgress = { step: 'Előkészítés...', current: 0, total: 100, file_name: '', percent: 1, speed: 0, total_bytes: 0, current_bytes: 0, remaining_time: '' };
+    modpackProgress = { step: $t('mods.preparingFiles'), current: 0, total: 100, file_name: '', percent: 1, speed: 0, total_bytes: 0, current_bytes: 0, remaining_time: '' };
 
     try {
       const inst: any = await invoke('install_modpack_new_instance', {
@@ -470,7 +471,7 @@
         memory: modpackMemory,
         icon: selectedMod.icon_url || null
       });
-      showNotification(`"${inst.name}" instance sikeresen létrehozva a modpackből!`, 'success');
+      showNotification($t('mods.installedSuccess', { name: inst.name }), 'success');
       await loadInstances();
       setTimeout(() => {
         showModpackProgressModal = false;
@@ -478,7 +479,7 @@
         goto(`/instance/${inst.id}`);
       }, 1000);
     } catch (err) {
-      showNotification(`Hiba a modpack telepítésekor: ${err}`, 'error');
+      showNotification(`Error: ${err}`, 'error');
       showModpackProgressModal = false;
     }
   }
@@ -487,14 +488,14 @@
     if (!selectedMod || !selectedVersion || !modpackTargetExisting) return;
     showModpackExistingModal = false;
     showModpackProgressModal = true;
-    modpackProgress = { step: 'Előkészítés...', current: 0, total: 100, file_name: '', percent: 1, speed: 0, total_bytes: 0, current_bytes: 0, remaining_time: '' };
+    modpackProgress = { step: $t('mods.preparingFiles'), current: 0, total: 100, file_name: '', percent: 1, speed: 0, total_bytes: 0, current_bytes: 0, remaining_time: '' };
 
     try {
       await invoke('install_modpack_existing_instance', {
         instanceId: modpackTargetExisting.id,
         versionId: selectedVersion.id
       });
-      showNotification(`Modpack sikeresen telepítve a(z) "${modpackTargetExisting.name}" instance-be!`, 'success');
+      showNotification($t('mods.installedSuccess', { name: modpackTargetExisting.name }), 'success');
       await loadInstances();
       setTimeout(() => {
         showModpackProgressModal = false;
@@ -502,7 +503,7 @@
         goto(`/instance/${modpackTargetExisting!.id}`);
       }, 1000);
     } catch (err) {
-      showNotification(`Hiba a modpack telepítésekor: ${err}`, 'error');
+      showNotification(`Error: ${err}`, 'error');
       showModpackProgressModal = false;
     }
   }
@@ -542,7 +543,7 @@
         await executeInstall(String(selectedVersion.id));
       }
     } catch (err) {
-      showNotification(`Hiba: ${err}`, 'error');
+      showNotification(`Error: ${err}`, 'error');
       installing = false;
     }
   }
@@ -578,10 +579,10 @@
         versionId: versionId,
         projectType: selectedMod?.project_type || projectType
       });
-      showNotification(`${selectedMod?.title} sikeresen telepítve!`, 'success');
+      showNotification($t('mods.installedSuccess', { name: selectedMod?.title || '' }), 'success');
       closeAllModals();
     } catch (err) {
-      showNotification(`Telepítési hiba: ${err}`, 'error');
+      showNotification(`Error: ${err}`, 'error');
     } finally {
       installing = false;
     }
@@ -649,18 +650,8 @@
 <div class="mod-browser-layout">
   <div class="mod-browser-main-container">
     <div class="mod-browser-header-centered">
-      <h1>
-        {projectType === 'mod' ? 'Mod Böngésző' :
-         projectType === 'modpack' ? 'Modpack Böngésző' :
-         projectType === 'resourcepack' ? 'Resource Pack Böngésző' :
-         'Datapack Böngésző'}
-      </h1>
-      <p>
-        {projectType === 'mod' ? 'Találd meg és telepítsd a legjobb kiegészítőket' :
-         projectType === 'modpack' ? 'Fedezz fel komplett modpackeket egyetlen kattintással' :
-         projectType === 'resourcepack' ? 'Szabd testre a textúrákat, hangokat és modelleket' :
-         'Bővítsd a világot, játékmechanikákat és struktúrákat datapackekkel'}
-      </p>
+      <h1>{$t('mods.title')}</h1>
+      <p>{$t('mods.subtitle')}</p>
 
       <div class="project-type-toggle">
         <button
@@ -669,7 +660,7 @@
           onclick={() => switchProjectType('mod')}
         >
           <Package size={15} />
-          <span>Modok</span>
+          <span>{$t('dash.mods')}</span>
         </button>
         <button
           type="button"
@@ -677,7 +668,7 @@
           onclick={() => switchProjectType('modpack')}
         >
           <Layers size={15} />
-          <span>Modpackek</span>
+          <span>{$t('dash.modpacks')}</span>
         </button>
         <button
           type="button"
@@ -685,7 +676,7 @@
           onclick={() => switchProjectType('resourcepack')}
         >
           <Palette size={15} />
-          <span>Resource Packek</span>
+          <span>{$t('mods.resourcePacks')}</span>
         </button>
         <button
           type="button"
@@ -693,7 +684,7 @@
           onclick={() => switchProjectType('datapack')}
         >
           <Database size={15} />
-          <span>Datapackek</span>
+          <span>{$t('mods.datapacks')}</span>
         </button>
       </div>
 
@@ -701,12 +692,7 @@
         <Search class="search-icon" size={22} />
         <input
           type="text"
-          placeholder={
-            projectType === 'mod' ? 'Keress modokat (pl. Sodium, Iris...)' :
-            projectType === 'modpack' ? 'Keress modpackeket (pl. Fabulously Optimized, Better MC...)' :
-            projectType === 'resourcepack' ? 'Keress resource packokat (pl. Fresh Animations, Bare Bones...)' :
-            'Keress datapackeket (pl. Terralith, Incendium...)'
-          }
+          placeholder={$t('mods.searchPlaceholder')}
           bind:value={searchQuery}
           onkeydown={(e) => e.key === 'Enter' && handleSearch(1)}
         />
@@ -714,7 +700,7 @@
           {#if loading}
             <Loader2 class="spin" size={20} />
           {:else}
-            Keresés
+            {$t('mods.searchBtn')}
           {/if}
         </button>
       </div>
@@ -762,17 +748,17 @@
                   {:else if mod.project_type === 'datapack'}
                     <span class="side-badge datapack">Datapack</span>
                   {:else if mod.client_side === 'required' && mod.server_side === 'required'}
-                    <span class="side-badge both">Client & Server</span>
+                    <span class="side-badge both">{$t('mods.sideBoth')}</span>
                   {:else if mod.client_side === 'required'}
-                    <span class="side-badge client">Client Side</span>
+                    <span class="side-badge client">{$t('mods.sideClient')}</span>
                   {:else if mod.server_side === 'required'}
-                    <span class="side-badge server">Server Side</span>
+                    <span class="side-badge server">{$t('mods.sideServer')}</span>
                   {:else if mod.client_side === 'optional' && mod.server_side === 'optional'}
-                    <span class="side-badge both">Universal</span>
+                    <span class="side-badge both">{$t('mods.sideUniversal')}</span>
                   {:else if mod.client_side === 'optional'}
-                    <span class="side-badge client">Client (Opt)</span>
+                    <span class="side-badge client">{$t('mods.sideClientOpt')}</span>
                   {:else if mod.server_side === 'optional'}
-                    <span class="side-badge server">Server (Opt)</span>
+                    <span class="side-badge server">{$t('mods.sideServerOpt')}</span>
                   {/if}
                 </div>
                 <p class="mod-desc-short">{mod.description}</p>
@@ -795,10 +781,10 @@
             class="pagination-nav-btn"
             disabled={currentPage <= 1 || loading}
             onclick={() => goToPage(currentPage - 1)}
-            title="Előző oldal"
+            title={$t('mods.prevPage')}
           >
             <ChevronLeft size={16} />
-            <span>Előző</span>
+            <span>{$t('mods.prev')}</span>
           </button>
 
           <div class="pagination-page-numbers">
@@ -823,9 +809,9 @@
             class="pagination-nav-btn"
             disabled={currentPage >= totalPages || loading}
             onclick={() => goToPage(currentPage + 1)}
-            title="Következő oldal"
+            title={$t('mods.nextPage')}
           >
-            <span>Következő</span>
+            <span>{$t('mods.next')}</span>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -845,7 +831,7 @@
         <div class="filter-controls-group">
           <div class="filter-label">
             <Filter size={15} />
-            <span>Szűrők:</span>
+            <span>{$t('mods.filters')}</span>
           </div>
 
           <!-- LOADER DROPDOWN (Only for Mods and Modpacks) -->
@@ -865,7 +851,7 @@
                 {:else}
                   <Layers size={16} />
                 {/if}
-                <span class="btn-text">{selectedLoaderObj?.name || 'Összes loader'}</span>
+                <span class="btn-text">{filterLoader === 'all' ? $t('mods.allLoaders') : selectedLoaderObj?.name}</span>
                 <ChevronDown size={14} class={`chevron-icon ${showLoaderDropdown ? 'rotate' : ''}`} />
               </button>
 
@@ -873,7 +859,7 @@
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div class="filter-dropdown-menu upward-menu" onclick={(e) => e.stopPropagation()}>
-                  <div class="dropdown-header-title">Mod Loader (Fork)</div>
+                  <div class="dropdown-header-title">{$t('mods.loaderTitle')}</div>
                   {#each LOADERS as l (l.id)}
                     <button
                       type="button"
@@ -886,7 +872,7 @@
                         {:else}
                           <Layers size={18} class="dropdown-default-icon" />
                         {/if}
-                        <span>{l.name}</span>
+                        <span>{l.id === 'all' ? $t('mods.allLoaders') : l.name}</span>
                       </div>
                       {#if filterLoader === l.id}
                         <Check size={16} class="check-icon" />
@@ -910,7 +896,7 @@
               }}
             >
               <img src="/loaders/vanilla.svg" alt="" class="btn-loader-icon" />
-              <span class="btn-text">{filterVersion === 'all' ? 'Összes verzió' : `MC ${filterVersion}`}</span>
+              <span class="btn-text">{filterVersion === 'all' ? $t('mods.allVersions') : `MC ${filterVersion}`}</span>
               <ChevronDown size={14} class={`chevron-icon ${showVersionDropdown ? 'rotate' : ''}`} />
             </button>
 
@@ -918,12 +904,12 @@
               <!-- svelte-ignore a11y_click_events_have_key_events -->
               <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div class="filter-dropdown-menu upward-menu version-menu" onclick={(e) => e.stopPropagation()}>
-                <div class="dropdown-header-title">Minecraft Verzió</div>
+                <div class="dropdown-header-title">{$t('mods.mcVersionTitle')}</div>
                 <div class="version-search-box">
                   <Search size={14} />
                   <input
                     type="text"
-                    placeholder="Keresés (pl. 1.21)..."
+                    placeholder={$t('mods.searchVersionPlaceholder')}
                     bind:value={versionSearchQuery}
                   />
                 </div>
@@ -935,7 +921,7 @@
                   >
                     <div class="item-left">
                       <Sparkles size={16} class="dropdown-default-icon" />
-                      <span>Összes verzió</span>
+                      <span>{$t('mods.allVersions')}</span>
                     </div>
                     {#if filterVersion === 'all'}
                       <Check size={16} class="check-icon" />
@@ -962,9 +948,9 @@
 
           <!-- CLEAR FILTERS -->
           {#if filterLoader !== 'all' || filterVersion !== 'all' || activeCategory !== 'all'}
-            <button type="button" class="clear-filters-btn" onclick={clearFilters} title="Szűrők visszaállítása">
+            <button type="button" class="clear-filters-btn" onclick={clearFilters} title={$t('mods.resetFiltersTitle')}>
               <RotateCcw size={14} />
-              <span>Szűrők törlése</span>
+              <span>{$t('mods.clearFilters')}</span>
             </button>
           {/if}
         </div>
@@ -972,14 +958,14 @@
         <div class="filter-dock-divider"></div>
 
         <div class="filter-meta-right">
-          <div class="results-badge" title={`${totalHits.toLocaleString()} elem összesen`}>
+          <div class="results-badge" title={$t('mods.totalItems', { n: totalHits.toLocaleString() })}>
             <Package size={14} />
             <span>
-              {loading ? 'Keresés...' :
-               projectType === 'mod' ? `${totalHits.toLocaleString()} mod` :
-               projectType === 'modpack' ? `${totalHits.toLocaleString()} modpack` :
-               projectType === 'resourcepack' ? `${totalHits.toLocaleString()} resource pack` :
-               `${totalHits.toLocaleString()} datapack`}
+              {loading ? $t('mods.searching') :
+               projectType === 'mod' ? $t('mods.countMods', { n: totalHits.toLocaleString() }) :
+               projectType === 'modpack' ? $t('mods.countModpacks', { n: totalHits.toLocaleString() }) :
+               projectType === 'resourcepack' ? $t('mods.countResourcePacks', { n: totalHits.toLocaleString() }) :
+               $t('mods.countDatapacks', { n: totalHits.toLocaleString() })}
             </span>
           </div>
 
@@ -990,7 +976,7 @@
                 class="dock-page-arrow"
                 disabled={currentPage <= 1 || loading}
                 onclick={() => goToPage(currentPage - 1)}
-                title="Előző oldal"
+                title={$t('mods.prevPage')}
               >
                 <ChevronLeft size={14} />
               </button>
@@ -1000,7 +986,7 @@
                 class="dock-page-arrow"
                 disabled={currentPage >= totalPages || loading}
                 onclick={() => goToPage(currentPage + 1)}
-                title="Következő oldal"
+                title={$t('mods.nextPage')}
               >
                 <ChevronRight size={14} />
               </button>
@@ -1018,9 +1004,9 @@
         type="button"
         class={`cat-sidebar-btn ${activeCategory === cat.id ? 'active' : ''}`}
         onclick={() => selectCategory(cat.id)}
-        onmouseenter={(e) => handleCategoryMouseEnter(e, cat.name)}
+        onmouseenter={(e) => handleCategoryMouseEnter(e, $t('cat.' + cat.id))}
         onmouseleave={handleCategoryMouseLeave}
-        aria-label={cat.name}
+        aria-label={$t('cat.' + cat.id)}
       >
         <Icon size={20} />
       </button>
@@ -1063,7 +1049,7 @@
         </div>
         <div class="mod-info-stats-modal">
           <div class="modal-stat-pill">
-            <Download size={18} /> <span>{selectedMod.downloads.toLocaleString()} Letöltés</span>
+            <Download size={18} /> <span>{selectedMod.downloads.toLocaleString()} {$t('mods.downloads')}</span>
           </div>
           <div class="modal-stat-pill">
             <Box size={18} /> <span>{
@@ -1077,9 +1063,9 @@
           {#if selectedMod.project_type === 'modpack' || projectType === 'modpack'}
             <div class="modal-section">
               <div class="modal-section-header">
-                <h3>Modpack Verzió</h3>
+                <h3>{$t('mods.selectedVersion')}</h3>
                 <button class="change-link-btn" onclick={() => (showVersionPicker = true)}>
-                  <List size={14} /> <span>Összes verzió</span>
+                  <List size={14} /> <span>{$t('mods.allVersionsBtn')}</span>
                 </button>
               </div>
               {#if selectedVersion}
@@ -1098,18 +1084,18 @@
                       {/if}
                     </div>
                   </div>
-                  <div class="p-badge-main recommended">Kiválasztva</div>
+                  <div class="p-badge-main recommended">{$t('mods.selected')}</div>
                 </div>
               {:else}
                 <div class="modal-alert-info">
-                  <Info size={18} /> <span>Verziók betöltése...</span>
+                  <Info size={18} /> <span>{$t('mods.loadingVersions')}</span>
                 </div>
               {/if}
             </div>
 
             <div class="modal-section">
               <div class="modal-section-header">
-                <h3>Hova szeretnéd telepíteni?</h3>
+                <h3>{$t('mods.whereToInstall')}</h3>
               </div>
               <div class="modpack-action-cards">
                 <button
@@ -1125,8 +1111,8 @@
                     <Plus size={22} />
                   </div>
                   <div class="choice-text">
-                    <h4>Új instance létrehozása</h4>
-                    <p>Önálló profilként, automatikus Minecraft & Loader beállításokkal</p>
+                    <h4>{$t('mods.createInstanceOption')}</h4>
+                    <p>{$t('mods.createInstanceDesc')}</p>
                   </div>
                   <ChevronRight size={18} class="choice-arrow" />
                 </button>
@@ -1143,8 +1129,8 @@
                     <Folder size={22} />
                   </div>
                   <div class="choice-text">
-                    <h4>Telepítés létező instance-be</h4>
-                    <p>Modok és konfigurációk berakása egy meglévő profilodba</p>
+                    <h4>{$t('mods.installExistingOption')}</h4>
+                    <p>{$t('mods.installExistingDesc')}</p>
                   </div>
                   <ChevronRight size={18} class="choice-arrow" />
                 </button>
@@ -1153,9 +1139,9 @@
           {:else}
             <div class="modal-section">
               <div class="modal-section-header">
-                <h3>Cél Instance</h3>
+                <h3>{$t('mods.targetInstance')}</h3>
                 <button class="change-link-btn" onclick={() => (showInstancePicker = true)}>
-                  <List size={14} /> <span>Összes</span>
+                  <List size={14} /> <span>{$t('mods.allBtn')}</span>
                 </button>
               </div>
               {#if targetInstance}
@@ -1176,20 +1162,20 @@
                       <span class="p-badge-loader">{targetInstance.loader}</span>
                     </div>
                   </div>
-                  <div class="p-badge-main recommended">Most Played</div>
+                  <div class="p-badge-main recommended">{$t('mods.mostPlayed')}</div>
                 </div>
               {:else}
                 <div class="modal-alert-error">
-                  <AlertCircle size={18} /> <span>Nincs kompatibilis instance.</span>
+                  <AlertCircle size={18} /> <span>{$t('mods.noCompatInstance')}</span>
                 </div>
               {/if}
             </div>
             <div class="modal-section">
               <div class="modal-section-header">
-                <h3>Választott Verzió</h3>
+                <h3>{$t('mods.selectedVersion')}</h3>
                 {#if targetInstance}
                   <button class="change-link-btn" onclick={() => (showVersionPicker = true)}>
-                    <List size={14} /> <span>Összes</span>
+                    <List size={14} /> <span>{$t('mods.allBtn')}</span>
                   </button>
                 {/if}
               </div>
@@ -1207,7 +1193,7 @@
                 </div>
               {:else}
                 <div class="modal-alert-info">
-                  <Info size={18} /> <span>Válassz egy verziót...</span>
+                  <Info size={18} /> <span>{$t('mods.chooseVersion')}</span>
                 </div>
               {/if}
             </div>
@@ -1226,10 +1212,10 @@
                 <Download size={20} />
               {/if}
               <span>{
-                installing ? 'Telepítés...' :
-                selectedMod.project_type === 'resourcepack' || projectType === 'resourcepack' ? 'Resource Pack Telepítése' :
-                selectedMod.project_type === 'datapack' || projectType === 'datapack' ? 'Datapack Telepítése' :
-                'Mod Telepítése'
+                installing ? $t('mods.installing') :
+                selectedMod.project_type === 'resourcepack' || projectType === 'resourcepack' ? $t('mods.installResourcePack') :
+                selectedMod.project_type === 'datapack' || projectType === 'datapack' ? $t('mods.installDatapack') :
+                $t('mods.installMod')
               }</span>
             </button>
           </div>
@@ -1250,10 +1236,10 @@
         <button class="close-btn" onclick={closeSubModal} aria-label="Close"><X size={20} /></button>
         <div class="picker-header-modal">
           <h2>
-            {showInstancePicker ? 'Válassz Instance-t' : showVersionPicker ? 'Válassz Verziót' : 'Függőségek'}
+            {showInstancePicker ? $t('mods.selectInstanceTitle') : showVersionPicker ? $t('mods.selectVersionTitle') : $t('mods.dependenciesTitle')}
           </h2>
           <p>
-            {showInstancePicker ? (isCurrentContentPack ? 'Válassz instance-t a telepítéshez' : 'Csak modolható verziók') : showVersionPicker ? `Kompatibilis: ${targetInstance?.mcVersion}` : 'Szükséges kiegészítők'}
+            {showInstancePicker ? (isCurrentContentPack ? $t('mods.selectInstanceSub') : $t('mods.moddableOnly')) : showVersionPicker ? $t('mods.compatWith', { ver: targetInstance?.mcVersion || '' }) : $t('mods.requiredAddons')}
           </p>
         </div>
         <div class="picker-body-scrollable">
@@ -1325,7 +1311,7 @@
                   <div class="dep-info">
                     <span class="dep-name">{dep.project.title}</span>
                     <span class={`dep-type-tag ${dep.dependency_type}`}>
-                      {dep.dependency_type === 'required' ? 'Kötelező' : 'Ajánlott'}
+                      {dep.dependency_type === 'required' ? $t('mods.required') : $t('mods.recommended')}
                     </span>
                   </div>
                   {#if dep.dependency_type === 'optional'}
@@ -1356,14 +1342,14 @@
               {:else}
                 <Download size={18} />
               {/if}
-              <span>Kijelöltek telepítése</span>
+              <span>{$t('mods.installSelected')}</span>
             </button>
             <button
               class="btn-secondary-outline only-main-btn"
               onclick={() => executeInstall(String(selectedVersion?.id || ''), false)}
               disabled={installing}
             >
-              Csak a fő modot
+              {$t('mods.mainModOnly')}
             </button>
           </div>
         {/if}
@@ -1376,10 +1362,10 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="create-modal-overlay sub-modal-overlay" use:portal onclick={() => (showModpackNewModal = false)}>
       <div class="create-modal-content modpack-dialog-fixed" onclick={(e) => e.stopPropagation()}>
-        <button class="close-btn" onclick={() => (showModpackNewModal = false)} aria-label="Bezárás"><X size={18} /></button>
+        <button class="close-btn" onclick={() => (showModpackNewModal = false)} aria-label="Close"><X size={18} /></button>
         <div class="picker-header-modal">
-          <h2>Új Instance Létrehozása</h2>
-          <p>A modpack konfigurációja automatikusan beállításra kerül</p>
+          <h2>{$t('createInstance.title')}</h2>
+          <p>{$t('mods.autoConfigHint')}</p>
         </div>
 
         <div class="modpack-dialog-body">
@@ -1405,19 +1391,19 @@
           </div>
 
           <div class="dialog-form-group">
-            <label for="modpack-inst-name">Instance Neve</label>
+            <label for="modpack-inst-name">{$t('createInstance.name')}</label>
             <input
               id="modpack-inst-name"
               type="text"
               bind:value={modpackInstanceName}
-              placeholder="Pl. Fabulously Optimized"
+              placeholder={$t('mods.modpackNamePlaceholder')}
               class="dialog-input"
             />
           </div>
 
           <div class="dialog-form-group">
             <div class="ram-label-row">
-              <label for="modpack-ram-slider">Memória (RAM)</label>
+              <label for="modpack-ram-slider">{$t('createInstance.memory')}</label>
               <span class="ram-value-display">{modpackMemory} MB ({(modpackMemory / 1024).toFixed(1)} GB)</span>
             </div>
             <input
@@ -1438,7 +1424,7 @@
             class="btn-cancel"
             onclick={() => (showModpackNewModal = false)}
           >
-            Mégse
+            {$t('settings.cancel')}
           </button>
           <button
             type="button"
@@ -1447,7 +1433,7 @@
             disabled={!modpackInstanceName.trim()}
           >
             <Download size={18} />
-            <span>Létrehozás és Telepítés</span>
+            <span>{$t('mods.createAndInstall')}</span>
           </button>
         </div>
       </div>
@@ -1459,10 +1445,10 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="create-modal-overlay sub-modal-overlay" use:portal onclick={() => (showModpackExistingModal = false)}>
       <div class="create-modal-content picker-modal-fixed" onclick={(e) => e.stopPropagation()}>
-        <button class="close-btn" onclick={() => (showModpackExistingModal = false)} aria-label="Bezárás"><X size={18} /></button>
+        <button class="close-btn" onclick={() => (showModpackExistingModal = false)} aria-label="Close"><X size={18} /></button>
         <div class="picker-header-modal">
-          <h2>Válassz Instance-t</h2>
-          <p>Melyik profilba szeretnéd betölteni a modpack tartalmát?</p>
+          <h2>{$t('mods.selectInstanceTitle')}</h2>
+          <p>{$t('mods.whichProfile')}</p>
         </div>
 
         <div class="picker-body-scrollable">
@@ -1500,7 +1486,7 @@
             class="btn-cancel"
             onclick={() => (showModpackExistingModal = false)}
           >
-            Mégse
+            {$t('settings.cancel')}
           </button>
           <button
             type="button"
@@ -1509,7 +1495,7 @@
             disabled={!modpackTargetExisting}
           >
             <Download size={18} />
-            <span>Telepítés a profilba</span>
+            <span>{$t('mods.installToProfile')}</span>
           </button>
         </div>
       </div>
@@ -1523,8 +1509,8 @@
           <div class="progress-icon-ring">
             <Loader2 class="spin" size={32} />
           </div>
-          <h2>Modpack Telepítése...</h2>
-          <p class="progress-step-text">{modpackProgress.step || 'Fájlok előkészítése...'}</p>
+          <h2>{$t('mods.installingModpack')}</h2>
+          <p class="progress-step-text">{modpackProgress.step || $t('mods.preparingFiles')}</p>
         </div>
 
         <div class="progress-bar-wrapper">
@@ -1536,16 +1522,16 @@
           </div>
           <div class="progress-meta-row">
             <span class="progress-filename truncate-text" title={modpackProgress.file_name}>
-              {modpackProgress.file_name || 'Kérlek várj...'}
+              {modpackProgress.file_name || $t('mods.pleaseWait')}
             </span>
             <span class="progress-pct">{Math.round(modpackProgress.percent)}%</span>
           </div>
-          {#if modpackProgress.speed > 0 || (modpackProgress.remaining_time && modpackProgress.remaining_time !== '0 mp')}
+          {#if modpackProgress.speed > 0 || (modpackProgress.remaining_time && !modpackProgress.remaining_time.startsWith('0'))}
             <div class="progress-extra-meta">
               {#if modpackProgress.speed > 0}
                 <span class="progress-speed"><Zap size={12} /> {modpackProgress.speed.toFixed(1)} MB/s</span>
               {/if}
-              {#if modpackProgress.remaining_time && modpackProgress.remaining_time !== '0 mp'}
+              {#if modpackProgress.remaining_time && !modpackProgress.remaining_time.startsWith('0')}
                 <span class="progress-eta"><Clock size={12} /> {modpackProgress.remaining_time}</span>
               {/if}
             </div>

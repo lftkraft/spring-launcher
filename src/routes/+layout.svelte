@@ -6,6 +6,7 @@
   import SideBar from '../components/SideBar.svelte';
   import NotificationContainer from '../components/NotificationContainer.svelte';
   import UpdaterModal from '../components/UpdaterModal.svelte';
+  import { initLanguage } from '../stores/i18n';
   import '../styles/global.css';
 
   let { children } = $props();
@@ -49,6 +50,7 @@
   let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
   onMount(async () => {
+    initLanguage();
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
     window.addEventListener('instances-loaded', handleInstancesLoaded);

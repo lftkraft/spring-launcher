@@ -5,6 +5,7 @@
   import type { RecentServer } from '../types/server';
   import { invoke } from '@tauri-apps/api/core';
   import { showNotification } from '../stores/notification';
+  import { t } from '../stores/i18n';
 
   let { instances, onClose, onAdded } = $props<{
     instances: Instance[];
@@ -20,17 +21,17 @@
 
   async function handleSave() {
     if (!serverAddress.trim()) {
-      error = 'Kérlek add meg a szerver címét (IP / Domain)!';
+      error = $t('addServer.errAddress');
       return;
     }
     if (!selectedInstanceId) {
-      error = 'Kérlek válassz ki egy Minecraft instance-t hozzá!';
+      error = $t('addServer.errInstance');
       return;
     }
 
     const inst = instances.find((i: Instance) => i.id === selectedInstanceId);
     if (!inst) {
-      error = 'A kiválasztott instance nem található.';
+      error = $t('addServer.errNotFound');
       return;
     }
 
@@ -53,7 +54,7 @@
       };
 
       await invoke('add_recent_server', { server: newServer });
-      showNotification(`"${finalName}" szerver hozzáadva!`, 'success');
+      showNotification($t('addServer.success', { name: finalName }), 'success');
       onAdded(newServer);
       onClose();
     } catch (err) {
@@ -75,8 +76,8 @@
           <Server size={20} />
         </div>
         <div>
-          <h2>Szerver Hozzáadása</h2>
-          <p>Rendelj egy Minecraft szervert egy kiválasztott instance-hez</p>
+          <h2>{$t('addServer.title')}</h2>
+          <p>{$t('addServer.subtitle')}</p>
         </div>
       </div>
       <button type="button" class="close-btn" onclick={onClose}>
@@ -92,13 +93,13 @@
       {/if}
 
       <div class="form-group">
-        <label for="srv-addr">Szerver címe (IP vagy Domain) *</label>
+        <label for="srv-addr">{$t('addServer.address')}</label>
         <div class="input-wrap">
           <Globe size={16} class="input-icon" />
           <input
             id="srv-addr"
             type="text"
-            placeholder="Pl: play.balkercraft.eu vagy mc.hypixel.net"
+            placeholder={$t('addServer.addressPlaceholder')}
             bind:value={serverAddress}
             onkeydown={(e) => e.key === 'Enter' && handleSave()}
           />
@@ -106,13 +107,13 @@
       </div>
 
       <div class="form-group">
-        <label for="srv-name">Szerver neve (opcionális)</label>
+        <label for="srv-name">{$t('addServer.name')}</label>
         <div class="input-wrap">
           <Server size={16} class="input-icon" />
           <input
             id="srv-name"
             type="text"
-            placeholder="Pl: BalkerCraft SMP, Hypixel Network"
+            placeholder={$t('addServer.namePlaceholder')}
             bind:value={serverName}
             onkeydown={(e) => e.key === 'Enter' && handleSave()}
           />
@@ -120,7 +121,7 @@
       </div>
 
       <div class="form-group">
-        <label for="inst-select">Társított Instance *</label>
+        <label for="inst-select">{$t('addServer.instance')}</label>
         <div class="input-wrap">
           <Box size={16} class="input-icon" />
           <select id="inst-select" bind:value={selectedInstanceId}>
@@ -131,21 +132,21 @@
             {/each}
           </select>
         </div>
-        <span class="field-hint">Ezzel a példánnyal fog elindulni a Minecraft, amikor erre a szerverre lépsz be.</span>
+        <span class="field-hint">{$t('addServer.hint')}</span>
       </div>
     </div>
 
     <div class="modal-footer">
       <button type="button" class="btn-cancel" onclick={onClose} disabled={saving}>
-        Mégse
+        {$t('settings.cancel')}
       </button>
       <button type="button" class="btn-primary-green" onclick={handleSave} disabled={saving}>
         {#if saving}
           <Loader2 size={16} class="spin" />
-          <span>Mentés...</span>
+          <span>{$t('settings.saving')}</span>
         {:else}
           <Plus size={16} />
-          <span>Hozzáadás</span>
+          <span>{$t('addServer.add')}</span>
         {/if}
       </button>
     </div>

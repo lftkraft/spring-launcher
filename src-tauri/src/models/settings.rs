@@ -21,7 +21,7 @@ impl Default for Settings {
             default_memory: 2048,
             default_java: None,
             theme: "dark".to_string(),
-            language: "hu".to_string(),
+            language: "en".to_string(),
         }
     }
 }

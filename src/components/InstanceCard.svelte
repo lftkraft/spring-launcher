@@ -1,7 +1,8 @@
-﻿<script lang="ts">
+<script lang="ts">
   import { invoke } from '@tauri-apps/api/core';
   import type { Instance } from '../types/instance';
   import type { Profile } from '../types/profile';
+  import { t } from '../stores/i18n';
   import './InstanceCard.css';
 
   let { instance, onDelete, onClick } = $props<{
@@ -34,13 +35,13 @@
     try {
       const activeProfileId = localStorage.getItem('activeProfileId');
       if (!activeProfileId) {
-        throw new Error('Nincs kiválasztott profil. Menj a Profilkezelőbe és válassz egyet.');
+        throw new Error($t('server.notFound', { name: 'Profile' }));
       }
 
       const profiles: Profile[] = await invoke('get_profiles');
       const profile = profiles.find((p) => p.id === activeProfileId);
       if (!profile) {
-        throw new Error('A kiválasztott profil nem található. Ellenőrizd a Profilkezelőt.');
+        throw new Error($t('server.notFound', { name: 'Profile' }));
       }
 
       await invoke('launch_instance', {
@@ -49,7 +50,7 @@
       });
     } catch (err) {
       console.error(`[InstanceCard][${instance.id}] launch-error`, err);
-      launchError = `Indítási hiba: ${err}`;
+      launchError = `${err}`;
       isLaunching = false;
     }
   }
@@ -78,20 +79,20 @@
   <div class="card-body">
     <div class="card-info">
       <span>🧠 {instance.memory} MB</span>
-      <span>📅 {new Date(instance.created).toLocaleDateString('hu-HU')}</span>
+      <span>📅 {new Date(instance.created).toLocaleDateString()}</span>
     </div>
     {#if instance.lastPlayed}
       <div class="card-last-played">
-        Utoljára: {new Date(instance.lastPlayed).toLocaleString('hu-HU')}
+        {$t('instanceCard.lastPlayed', { date: new Date(instance.lastPlayed).toLocaleString() })}
       </div>
     {/if}
   </div>
 
   <div class="card-actions">
     <button class="btn-launch" onclick={handleLaunch} disabled={isLaunching}>
-      {isLaunching ? '⏳ Indítás...' : '▶️ Indítás'}
+      {isLaunching ? `⏳ ${$t('instanceCard.launching')}` : `▶️ ${$t('instanceCard.launch')}`}
     </button>
-    <button class="btn-delete" onclick={handleDelete} title="Törlés">
+    <button class="btn-delete" onclick={handleDelete} title={$t('instanceCard.delete')}>
       🗑️
     </button>
   </div>

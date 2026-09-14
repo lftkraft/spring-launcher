@@ -4,7 +4,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { listen } from '@tauri-apps/api/event';
   import {
-    Play, Square, Flame, Sparkles, Clock, User, Folder, FolderOpen,
+    Play, Square, Flame, Clock, User, Folder, FolderOpen,
     Plus, Layers, Package, Download, ChevronRight,
     Loader2, Globe, Monitor, Users, Server, Box, Trash2, RefreshCw
   } from 'lucide-svelte';
@@ -13,6 +13,7 @@
   import type { ModrinthSearchHit } from '../types/mod';
   import type { RecentServer } from '../types/server';
   import { showNotification } from '../stores/notification';
+  import { t } from '../stores/i18n';
   import CreateInstanceModal from '../components/CreateInstanceModal.svelte';
   import AddServerModal from '../components/AddServerModal.svelte';
   import './Dashboard.css';
@@ -62,33 +63,21 @@
     return instances.filter((i) => i.id !== lastPlayedInstance!.id).slice(0, 4);
   });
 
-  let totalPlaytimeFormatted = $derived.by(() => {
-    const totalSec = instances.reduce((acc, i) => acc + (i.playtime || 0), 0);
-    if (totalSec >= 3600) {
-      return `${(totalSec / 3600).toFixed(1)} óra`;
-    } else if (totalSec >= 60) {
-      return `${Math.floor(totalSec / 60)} perc`;
-    } else if (totalSec > 0) {
-      return `${totalSec} mp`;
-    }
-    return '0 óra';
-  });
-
-  function getGreeting(): { title: string; subtitle: string } {
+  function getGreetingKeys(): { titleKey: string; subKey: string } {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
-      return { title: 'Jó reggelt', subtitle: 'Készen állsz egy újabb kalandra?' };
+      return { titleKey: 'greeting.morning', subKey: 'greeting.sub.morning' };
     } else if (hour >= 12 && hour < 18) {
-      return { title: 'Szép napot', subtitle: 'Folytasd a legutóbbi világodat vagy próbálj ki új modokat!' };
+      return { titleKey: 'greeting.afternoon', subKey: 'greeting.sub.afternoon' };
     } else {
-      return { title: 'Kellemes estét', subtitle: 'Ideje leülni egy jó kis Minecraftozásra!' };
+      return { titleKey: 'greeting.evening', subKey: 'greeting.sub.evening' };
     }
   }
 
-  let greeting = $derived(getGreeting());
+  let greetingKeys = $derived(getGreetingKeys());
 
   function formatRelativeDate(dateStr?: string): string {
-    if (!dateStr) return 'Még nem játszottál vele';
+    if (!dateStr) return $t('time.never');
     try {
       const date = new Date(dateStr);
       const now = new Date();
@@ -97,27 +86,32 @@
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-      if (diffMins < 5) return 'Épp most';
-      if (diffMins < 60) return `${diffMins} perce`;
-      if (diffHours < 24) return `${diffHours} órája`;
-      if (diffDays === 1) return 'Tegnap';
-      if (diffDays < 7) return `${diffDays} napja`;
-      return date.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
+      if (diffMins < 5) return $t('time.justNow');
+      if (diffMins < 60) return $t('time.minsAgo', { n: diffMins });
+      if (diffHours < 24) return $t('time.hoursAgo', { n: diffHours });
+      if (diffDays === 1) return $t('time.yesterday');
+      if (diffDays < 7) return $t('time.daysAgo', { n: diffDays });
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch {
-      return 'Ismeretlen';
+      return $t('time.unknown');
     }
   }
 
   function formatPlaytime(seconds?: number): string {
-    if (!seconds) return '0 óra';
+    if (!seconds) return $t('time.zeroHours');
     if (seconds >= 3600) {
-      return `${(seconds / 3600).toFixed(1)} óra`;
+      return $t('time.hours', { n: (seconds / 3600).toFixed(1) });
     }
     if (seconds >= 60) {
-      return `${Math.floor(seconds / 60)} perc`;
+      return $t('time.mins', { n: Math.floor(seconds / 60) });
     }
-    return `${seconds} mp`;
+    return $t('time.secs', { n: seconds });
   }
+
+  let totalPlaytimeFormatted = $derived.by(() => {
+    const totalSec = instances.reduce((acc, i) => acc + (i.playtime || 0), 0);
+    return formatPlaytime(totalSec);
+  });
 
   function formatDownloads(count: number): string {
     if (count >= 1_000_000) {
@@ -233,7 +227,7 @@
     if (isLaunching) return;
 
     if (runningInstanceId === instance.id) {
-      showNotification('Ez az instance jelenleg is fut!', 'info');
+      showNotification($t('notify.alreadyRunning'), 'info');
       return;
     }
 
@@ -244,22 +238,22 @@
         profile = profiles[0];
       }
       if (!profile) {
-        showNotification('Nincs kiválasztott profil! Hozz létre egyet a Profilkezelőben.', 'error');
+        showNotification($t('notify.noProfileSelect'), 'error');
         goto('/profiles');
         return;
       }
 
-      showNotification(`"${instance.name}" indítása...`, 'info');
+      showNotification($t('notify.launching', { name: instance.name }), 'info');
       await invoke('launch_instance', {
         id: instance.id,
         profile
       });
       runningInstanceId = instance.id;
-      showNotification(`"${instance.name}" elindult!`, 'success');
+      showNotification($t('notify.launched', { name: instance.name }), 'success');
       await loadInstances();
     } catch (err) {
       console.error('Launch failed:', err);
-      showNotification(`Indítási hiba: ${err}`, 'error');
+      showNotification($t('notify.launchError', { err: String(err) }), 'error');
     } finally {
       isLaunching = false;
     }
@@ -282,12 +276,12 @@
 
     const inst = instances.find((i) => i.id === server.instance_id);
     if (!inst) {
-      showNotification(`A(z) "${server.instance_name}" instance nem található!`, 'error');
+      showNotification($t('notify.instanceNotFound', { name: server.instance_name }), 'error');
       return;
     }
 
     if (runningInstanceId === inst.id) {
-      showNotification('Ez az instance jelenleg is fut!', 'info');
+      showNotification($t('notify.alreadyRunning'), 'info');
       return;
     }
 
@@ -299,23 +293,23 @@
         profile = profiles[0];
       }
       if (!profile) {
-        showNotification('Nincs kiválasztott profil! Hozz létre egyet a Profilkezelőben.', 'error');
+        showNotification($t('notify.noProfileSelect'), 'error');
         goto('/profiles');
         return;
       }
 
-      showNotification(`Csatlakozás: ${server.server_name} (${inst.name})...`, 'info');
+      showNotification($t('notify.connectingServer', { server: server.server_name, instance: inst.name }), 'info');
       await invoke('launch_instance_server', {
         instanceId: inst.id,
         profile,
         serverAddress: server.server_address
       });
       runningInstanceId = inst.id;
-      showNotification(`"${inst.name}" elindult! Csatlakozás: ${server.server_name}`, 'success');
+      showNotification($t('notify.launchedServer', { instance: inst.name, server: server.server_name }), 'success');
       await Promise.all([loadInstances(), loadRecentServers()]);
     } catch (err) {
       console.error('Launch server failed:', err);
-      showNotification(`Indítási hiba: ${err}`, 'error');
+      showNotification($t('notify.launchError', { err: String(err) }), 'error');
     } finally {
       isLaunching = false;
       launchingServerId = null;
@@ -326,7 +320,7 @@
     try {
       await invoke('remove_recent_server', { id });
       recentServers = recentServers.filter((s) => s.id !== id);
-      showNotification('Szerver eltávolítva a listából.', 'info');
+      showNotification($t('notify.serverRemoved'), 'info');
     } catch (err) {
       console.error('Failed to remove server:', err);
     }
@@ -360,24 +354,16 @@
     {#if loading}
       <div class="dashboard-loading-state">
         <Loader2 class="spin" size={38} />
-        <p>Dashboard betöltése...</p>
+        <p>{$t('dash.loading')}</p>
       </div>
     {:else}
       <!-- GREETING HEADER -->
       <div class="dash-welcome-bar">
         <div class="welcome-text-group">
-          <span class="greeting-badge">
-            <Sparkles size={14} />
-            <span>{greeting.title}</span>
-          </span>
           <h1 class="greeting-user">
-            {#if activeProfile}
-              {activeProfile.name}
-            {:else}
-              Játékos
-            {/if}
+            {$t(greetingKeys.titleKey)}, <span class="greeting-username">{activeProfile ? activeProfile.name : $t('greeting.player')}</span>
           </h1>
-          <p class="greeting-subtitle">{greeting.subtitle}</p>
+          <p class="greeting-subtitle">{$t(greetingKeys.subKey)}</p>
         </div>
       </div>
 
@@ -389,9 +375,11 @@
           
           <!-- HERO FEATURED LAST PLAYED CARD -->
           <div class="dash-card hero-featured-card">
-            <div class="card-top-label">
-              <Clock size={15} />
-              <span>UTOLJÁRA JÁTSZOTT PÉLDÁNY</span>
+            <div class="dash-card-header mini-header">
+              <div class="header-left">
+                <Clock class="header-icon" size={17} />
+                <h3>{$t('dash.lastPlayed')}</h3>
+              </div>
             </div>
 
             {#if lastPlayedInstance}
@@ -415,9 +403,9 @@
                   <h2 class="feat-name truncate-text" title={lastPlayedInstance.name}>{lastPlayedInstance.name}</h2>
 
                   <div class="feat-time-row">
-                    <span>Utoljára: {formatRelativeDate(lastPlayedInstance.lastPlayed)}</span>
+                    <span>{$t('dash.lastPlayed')}: {formatRelativeDate(lastPlayedInstance.lastPlayed)}</span>
                     <span class="dot-sep">•</span>
-                    <span>Játékidő: {formatPlaytime(lastPlayedInstance.playtime)}</span>
+                    <span>{$t('dash.playtime')}: {formatPlaytime(lastPlayedInstance.playtime)}</span>
                   </div>
                 </div>
 
@@ -429,14 +417,14 @@
                     disabled={isLaunching}
                   >
                     {#if isLaunching}
-                      <Loader2 class="spin" size={20} />
-                      <span>Indítás...</span>
+                      <Loader2 class="spin" size={18} />
+                      <span>{$t('dash.launching')}</span>
                     {:else if runningInstanceId === lastPlayedInstance.id}
-                      <Square size={18} />
-                      <span>Játékban</span>
+                      <Square size={16} />
+                      <span>{$t('dash.inGame')}</span>
                     {:else}
-                      <Play size={20} fill="currentColor" />
-                      <span>INDÍTÁS</span>
+                      <Play size={18} fill="currentColor" />
+                      <span>{$t('dash.launch')}</span>
                     {/if}
                   </button>
 
@@ -444,19 +432,19 @@
                     type="button"
                     class="hero-details-btn"
                     onclick={() => goto(`/instance/${lastPlayedInstance!.id}`)}
-                    title="Instance megnyitása"
+                    title={$t('dash.details')}
                   >
-                    <FolderOpen size={17} />
-                    <span>Részletek</span>
+                    <FolderOpen size={16} />
+                    <span>{$t('dash.details')}</span>
                   </button>
                 </div>
               </div>
             {:else}
               <div class="featured-empty-state">
-                <div class="empty-icon-ring"><Package size={32} /></div>
+                <div class="empty-icon-ring"><Package size={28} /></div>
                 <div class="empty-meta">
-                  <h3>Még nincs létrehozott instance-ed</h3>
-                  <p>Hozd létre az első Minecraft példányodat egyetlen kattintással!</p>
+                  <h3>{$t('dash.noInstance')}</h3>
+                  <p>{$t('dash.noInstanceSub')}</p>
                 </div>
                 <button
                   type="button"
@@ -464,7 +452,7 @@
                   onclick={() => (showCreateModal = true)}
                 >
                   <Plus size={16} />
-                  <span>Új Instance Létrehozása</span>
+                  <span>{$t('dash.createFirst')}</span>
                 </button>
               </div>
             {/if}
@@ -474,8 +462,8 @@
           <div class="dash-card trending-card-container">
             <div class="dash-card-header">
               <div class="header-left">
-                <Flame class="flame-icon" size={20} />
-                <h3>Felkapott Kiegészítők</h3>
+                <Flame class="header-icon flame-icon" size={18} />
+                <h3>{$t('dash.trending')}</h3>
               </div>
 
               <div class="header-right">
@@ -486,7 +474,7 @@
                     onclick={() => (trendingType = 'mod')}
                   >
                     <Package size={13} />
-                    <span>Modok</span>
+                    <span>{$t('dash.mods')}</span>
                   </button>
                   <button
                     type="button"
@@ -494,7 +482,7 @@
                     onclick={() => (trendingType = 'modpack')}
                   >
                     <Layers size={13} />
-                    <span>Modpackek</span>
+                    <span>{$t('dash.modpacks')}</span>
                   </button>
                 </div>
 
@@ -503,7 +491,7 @@
                   class="text-link-btn"
                   onclick={() => goto('/mods')}
                 >
-                  <span>Összes</span>
+                  <span>{$t('dash.all')}</span>
                   <ChevronRight size={14} />
                 </button>
               </div>
@@ -535,7 +523,7 @@
                       {#if item.icon_url}
                         <img src={item.icon_url} alt="" />
                       {:else}
-                        <Package size={24} />
+                        <Package size={22} />
                       {/if}
                     </div>
                     <div class="item-info">
@@ -549,7 +537,7 @@
                           <Download size={12} />
                           <span>{formatDownloads(item.downloads)}</span>
                         </span>
-                        <span class="item-open-hint">Böngészés →</span>
+                        <span class="item-open-hint">→</span>
                       </div>
                     </div>
                   </div>
@@ -562,15 +550,15 @@
           <div class="dash-card servers-card-container">
             <div class="dash-card-header">
               <div class="header-left">
-                <Server class="server-icon" size={20} />
-                <h3>Legutóbb Játszott Szerverek</h3>
+                <Server class="header-icon server-icon" size={18} />
+                <h3>{$t('dash.savedServers')}</h3>
               </div>
               <div class="header-right">
                 <button
                   type="button"
                   class="mini-icon-btn"
                   onclick={loadRecentServers}
-                  title="Frissítés"
+                  title={$t('dash.refresh')}
                   disabled={serversLoading}
                 >
                   <RefreshCw size={13} class={serversLoading ? 'spin' : ''} />
@@ -581,7 +569,7 @@
                   onclick={() => (showAddServerModal = true)}
                 >
                   <Plus size={14} />
-                  <span>Új Szerver</span>
+                  <span>{$t('dash.addServer')}</span>
                 </button>
               </div>
             </div>
@@ -590,7 +578,7 @@
               {#if serversLoading && recentServers.length === 0}
                 <div class="srv-empty-state">
                   <Loader2 size={20} class="spin" />
-                  <span>Szerverek betöltése...</span>
+                  <span>...</span>
                 </div>
               {:else if recentServers.length > 0}
                 {#each recentServers as srv (srv.id)}
@@ -605,7 +593,7 @@
                           class="srv-img"
                           onerror={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                         />
-                        <Server size={28} class="srv-fallback-icon" />
+                        <Server size={24} class="srv-fallback-icon" />
                       {/if}
                     </div>
 
@@ -613,8 +601,8 @@
                       <span class="srv-name truncate-text" title={srv.server_name}>{srv.server_name}</span>
                       <span class="srv-addr truncate-text">{srv.server_address}</span>
                       <div class="srv-tags-row">
-                        <span class="srv-inst-tag" title={`Példány: ${srv.instance_name}`}>
-                          <Box size={13} />
+                        <span class="srv-inst-tag" title={srv.instance_name}>
+                          <Box size={12} />
                           <span class="srv-tag-name">{srv.instance_name}</span>
                         </span>
                         {#if srv.instance_loader}
@@ -633,22 +621,22 @@
                         class="srv-play-btn"
                         onclick={() => handleLaunchServer(srv)}
                         disabled={isLaunching}
-                        title="Belépés"
+                        title={$t('server.join')}
                       >
                         {#if launchingServerId === srv.id}
-                          <Loader2 size={16} class="spin" />
+                          <Loader2 size={15} class="spin" />
                         {:else}
-                          <Play size={16} fill="currentColor" />
+                          <Play size={15} fill="currentColor" />
                         {/if}
-                        <span>Belépés</span>
+                        <span>{$t('server.join')}</span>
                       </button>
                       <button
                         type="button"
                         class="srv-del-btn"
                         onclick={() => handleRemoveServer(srv.id)}
-                        title="Eltávolítás"
+                        title={$t('server.remove')}
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
                     </div>
                   </div>
@@ -656,9 +644,9 @@
               {:else}
                 <div class="srv-empty-state">
                   <Server size={22} />
-                  <p>Még nem adtál hozzá elmentett szervert.</p>
+                  <p>{$t('dash.noServers')}</p>
                   <button type="button" class="mini-create-link" onclick={() => (showAddServerModal = true)}>
-                    + Új szerver hozzáadása
+                    {$t('dash.addServerLink')}
                   </button>
                 </div>
               {/if}
@@ -670,11 +658,13 @@
         <!-- RIGHT SIDEBAR COLUMN -->
         <div class="dashboard-side-col">
 
-          <!-- PROFILE CARD (WELL-DEFINED SEPARATE WIDGET) -->
+          <!-- PROFILE CARD -->
           <div class="dash-card profile-widget-card">
-            <div class="card-top-label">
-              <User size={15} />
-              <span>AKTÍV PROFIL</span>
+            <div class="dash-card-header mini-header">
+              <div class="header-left">
+                <User class="header-icon" size={16} />
+                <h3>{$t('dash.activeProfile')}</h3>
+              </div>
             </div>
 
             <div class="profile-widget-body">
@@ -692,17 +682,17 @@
                       }}
                     />
                   {:else}
-                    <User size={28} class="avatar-icon" />
+                    <User size={24} class="avatar-icon" />
                   {/if}
                 {:else}
-                  <User size={28} class="avatar-icon" />
+                  <User size={24} class="avatar-icon" />
                 {/if}
                 <div class="p-online-dot"></div>
               </div>
 
               <div class="profile-widget-text">
                 <span class="p-name truncate-text">
-                  {activeProfile ? activeProfile.name : 'Nincs profil'}
+                  {activeProfile ? activeProfile.name : $t('dash.noProfile')}
                 </span>
                 <span class={`p-type-badge ${activeProfile?.profile_type || 'offline'}`}>
                   {#if activeProfile?.profile_type === 'microsoft'}
@@ -720,36 +710,36 @@
               onclick={() => goto('/profiles')}
             >
               <Users size={14} />
-              <span>Profilváltás / Fiókok</span>
+              <span>{$t('dash.switchProfile')}</span>
               <ChevronRight size={14} />
             </button>
           </div>
 
-          <!-- LAUNCHER STATS CARD (WELL-DEFINED SEPARATE WIDGET) -->
+          <!-- LAUNCHER STATS CARD -->
           <div class="dash-card stats-widget-card">
             <div class="stat-row-item">
-              <span class="stat-k">Összes Instance</span>
+              <span class="stat-k">{$t('dash.totalInstances')}</span>
               <span class="stat-v">{instances.length}</span>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-row-item">
-              <span class="stat-k">Játékidő</span>
+              <span class="stat-k">{$t('dash.playtime')}</span>
               <span class="stat-v">{totalPlaytimeFormatted}</span>
             </div>
           </div>
 
           <!-- OTHER INSTANCES QUICK LIST -->
           <div class="dash-card other-instances-card">
-            <div class="card-header-mini">
-              <div class="mini-title-wrap">
-                <Folder size={15} />
-                <span>További Példányok</span>
+            <div class="dash-card-header mini-header">
+              <div class="header-left">
+                <Folder class="header-icon" size={16} />
+                <h3>{$t('dash.otherInstances')}</h3>
               </div>
               <button
                 type="button"
                 class="mini-add-btn"
                 onclick={() => (showCreateModal = true)}
-                title="Új instance"
+                title={$t('sidebar.newInstance')}
               >
                 <Plus size={15} />
               </button>
@@ -781,7 +771,7 @@
                     <button
                       type="button"
                       class="mini-launch-btn"
-                      title="Indítás"
+                      title={$t('dash.launch')}
                       onclick={(e) => {
                         e.stopPropagation();
                         handleLaunch(inst);
@@ -799,13 +789,13 @@
               </div>
             {:else if instances.length <= 1}
               <div class="mini-empty-wrap">
-                <p>Nincs több instance.</p>
+                <p>{$t('dash.noMoreInstances')}</p>
                 <button
                   type="button"
                   class="mini-create-link"
                   onclick={() => (showCreateModal = true)}
                 >
-                  + Létrehozás
+                  {$t('dash.createLink')}
                 </button>
               </div>
             {/if}
@@ -815,7 +805,7 @@
               class="all-instances-footer-btn"
               onclick={() => goto('/instances')}
             >
-              <span>Minden instance megtekintése</span>
+              <span>{$t('dash.viewAllInstances')}</span>
               <ChevronRight size={15} />
             </button>
           </div>

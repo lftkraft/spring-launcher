@@ -3,6 +3,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { Image as ImageIcon, Trash2, X, Copy, ZoomIn, ZoomOut, Loader2, Maximize2 } from 'lucide-svelte';
   import { showNotification } from '../stores/notification';
+  import { t } from '../stores/i18n';
   import { portal } from '../utils/portal';
   import './ScreenshotGallery.css';
 
@@ -161,13 +162,13 @@
 
   async function handleDelete(e: MouseEvent, path: string) {
     e.stopPropagation();
-    if (window.confirm('Biztosan törölni szeretnéd?')) {
+    if (window.confirm($t('screenshots.deleteConfirm'))) {
       try {
         await invoke('delete_file_item', { path });
         screenshots = screenshots.filter((s) => s.path !== path);
-        showNotification('Screenshot törölve', 'info');
+        showNotification($t('notify.deleteSuccess'), 'info');
       } catch (err) {
-        showNotification('Hiba a törlés során', 'error');
+        showNotification($t('notify.errorDelete', { err: String(err) }), 'error');
       }
     }
   }
@@ -177,13 +178,13 @@
   {#if loading && screenshots.length === 0}
     <div class="gallery-loading">
       <Loader2 class="spin" size={32} />
-      <p>Screenshotok betöltése...</p>
+      <p>{$t('screenshots.loading')}</p>
     </div>
   {:else if screenshots.length === 0}
     <div class="empty-gallery">
       <ImageIcon size={64} />
-      <h3>Nincsenek screenshotok</h3>
-      <p>Játék közben az F2 billentyűvel készíthetsz képeket.</p>
+      <h3>{$t('screenshots.emptyTitle')}</h3>
+      <p>{$t('screenshots.emptySub')}</p>
     </div>
   {:else}
     <div class="screenshot-grid">
@@ -201,7 +202,7 @@
               <button
                 class="action-btn delete"
                 onclick={(e) => handleDelete(e, s.path)}
-                title="Törlés"
+                title={$t('screenshots.delete')}
               >
                 <Trash2 size={18} />
               </button>
@@ -262,7 +263,7 @@
             e.stopPropagation();
             handleCopyImage();
           }}
-          title="Másolás"
+          title={$t('screenshots.copy')}
         >
           <Copy size={20} />
         </button>
@@ -293,7 +294,7 @@
             e.stopPropagation();
             closeLightbox();
           }}
-          title="Bezárás"
+          title={$t('screenshots.close')}
         >
           <X size={20} />
         </button>

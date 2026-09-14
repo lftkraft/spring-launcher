@@ -1,7 +1,8 @@
-﻿<script lang="ts">
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { listen } from '@tauri-apps/api/event';
   import { Copy, Trash2, ChevronDown, Terminal } from 'lucide-svelte';
+  import { t } from '../../stores/i18n';
   import './Console.css';
 
   let logs = $state<string[]>([]);
@@ -38,19 +39,19 @@
   <div class="console-header">
     <div class="header-left">
       <Terminal size={18} class="icon-green" />
-      <span>Spring Launcher - Játék Konzol</span>
+      <span>{$t('console.title')}</span>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" onclick={handleCopy} title="Összes másolása" aria-label="Copy logs">
+      <button class="icon-btn" onclick={handleCopy} title={$t('console.copyAll')} aria-label="Copy logs">
         <Copy size={16} />
       </button>
-      <button class="icon-btn" onclick={handleClear} title="Log törlése" aria-label="Clear logs">
+      <button class="icon-btn" onclick={handleClear} title={$t('console.clearLog')} aria-label="Clear logs">
         <Trash2 size={16} />
       </button>
       <button
         class={`icon-btn ${autoScroll ? 'active' : ''}`}
         onclick={() => (autoScroll = !autoScroll)}
-        title="Automatikus görgetés"
+        title={$t('console.autoScroll')}
         aria-label="Toggle auto scroll"
       >
         <ChevronDown size={16} />
@@ -60,7 +61,7 @@
 
   <div class="console-logs" bind:this={scrollContainer}>
     {#if logs.length === 0}
-      <div class="console-empty">Várakozás a logokra...</div>
+      <div class="console-empty">{$t('console.waitingLogs')}</div>
     {:else}
       {#each logs as log, i}
         <div class={`log-line ${log.includes('[ERROR]') ? 'error' : ''}`}>

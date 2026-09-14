@@ -18,6 +18,7 @@
   import NoMods from '../../../components/NoMods.svelte';
   import CreateInstanceModal from '../../../components/CreateInstanceModal.svelte';
   import { showNotification } from '../../../stores/notification';
+  import { t } from '../../../stores/i18n';
   import { portal } from '../../../utils/portal';
   import './InstanceDetail.css';
 
@@ -352,10 +353,10 @@
     if (!instance) return;
     try {
       await invoke('delete_mod', { instancePath: instance.gameDir, filename });
-      showNotification('Mod eltávolítva', 'info');
+      showNotification($t('notify.modRemoved'), 'info');
       loadInstalledMods();
     } catch (err) {
-      showNotification('Hiba a törléskor', 'error');
+      showNotification($t('notify.errorDelete', { err: String(err) }), 'error');
     }
   }
 
@@ -375,7 +376,7 @@
         });
         replaceVersions = versions;
       } else {
-        showNotification('Mod nem található a Modrinth-en', 'info');
+        showNotification($t('notify.modNotFoundModrinth'), 'info');
       }
     } catch (err) {
       console.error(err);
@@ -405,7 +406,7 @@
         instancePath: instance.gameDir,
         versionId: newVersionId
       });
-      showNotification('Mod sikeresen cserélve!', 'success');
+      showNotification($t('notify.modReplaced'), 'success');
       closeReplaceModal();
       loadInstalledMods();
     } catch (err) {
@@ -512,7 +513,7 @@
     try {
       await invoke('open_folder', { path: `${instance.gameDir}/logs` });
     } catch (e) {
-      showNotification('Nem sikerült megnyitni a mappát', 'error');
+      showNotification($t('notify.openFolderFailed'), 'error');
     }
   }
 
@@ -530,12 +531,12 @@
     try {
       await navigator.clipboard.writeText(selectedLogContent);
       logCopied = true;
-      showNotification('Log vágólapra másolva!', 'success');
+      showNotification($t('notify.copiedToClipboard'), 'success');
       setTimeout(() => {
         logCopied = false;
       }, 2000);
     } catch (err) {
-      showNotification('Sikertelen másolás', 'error');
+      showNotification($t('notify.copyFailed'), 'error');
     }
   }
 
@@ -570,9 +571,9 @@
     if (!selectedImage) return;
     try {
       await navigator.clipboard.writeText(selectedImage);
-      showNotification('Másolva!', 'success');
+      showNotification($t('notify.copiedToClipboard'), 'success');
     } catch (err) {
-      showNotification('Sikertelen', 'error');
+      showNotification($t('notify.copyFailed'), 'error');
     }
   }
 
@@ -636,10 +637,10 @@
   }
 
   function formatPlaytime(seconds: number) {
-    if (!seconds) return '0 perc';
+    if (!seconds) return $t('time.mins', { n: 0 });
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h} óra ${m} perc` : `${m} perc`;
+    return h > 0 ? `${$t('time.hours', { n: h })} ${$t('time.mins', { n: m })}` : $t('time.mins', { n: m });
   }
 
   function formatSize(bytes: number) {
@@ -656,9 +657,9 @@
       try {
         await invoke('kill_instance', { id: instance.id });
         isRunning = false;
-        showNotification('Játék leállítva', 'info');
+        showNotification($t('notify.gameStopped'), 'info');
       } catch (err) {
-        showNotification(`Hiba: ${err}`, 'error');
+        showNotification(`${$t('detail.error')}: ${err}`, 'error');
       }
       return;
     }
@@ -762,8 +763,8 @@
     if (!instance) return;
     try {
       const newPath = await invoke<string | null>('select_file', {
-        title: 'Válassz ikont',
-        filterName: 'Képek',
+        title: $t('detail.selectIconTitle'),
+        filterName: $t('detail.imagesFilter'),
         filterExt: '*'
       });
       if (newPath) {
@@ -848,12 +849,12 @@
 </script>
 
 ﻿{#if loading}
-  <div class="instance-detail-loading">Betöltés...</div>
+  <div class="instance-detail-loading">{$t('dash.loading')}</div>
 {:else if instance}
   <div class="instance-detail">
     <div class="detail-header">
       <button class="back-btn" onclick={() => goto('/')}>
-        <ChevronLeft size={20} /><span>Vissza</span>
+        <ChevronLeft size={20} /><span>{$t('detail.back')}</span>
       </button>
 
       <div class="header-main-content">
@@ -884,7 +885,7 @@
                 onclick={() => (showProgressModal = true)}
                 role="button"
                 tabindex="0"
-                title="Kattints a részletekért"
+                title={$t('detail.clickDetails')}
               >
                 <div class="widget-icon-box">
                   <div class="widget-pulse-glow"></div>
@@ -892,7 +893,7 @@
                 </div>
                 <div class="widget-body">
                   <div class="widget-row-top">
-                    <span class="widget-status-text">{downloadProgress.status || 'Folyamatban...'}</span>
+                    <span class="widget-status-text">{downloadProgress.status || $t('detail.downloading')}</span>
                     <span class="widget-pct-pill">{Math.round(downloadProgress.percentage)}%</span>
                   </div>
                   <div class="widget-progress-track">
@@ -909,7 +910,7 @@
                       <span class="widget-metric files"><Box size={11} /> {downloadProgress.current_files}/{downloadProgress.total_files}</span>
                     </div>
                     <div class="widget-action-link">
-                      <span>Részletek</span>
+                      <span>{$t('dash.details')}</span>
                       <ChevronRight size={13} />
                     </div>
                   </div>
@@ -924,7 +925,7 @@
             <button
               class="icon-action-btn circle"
               onclick={browseModsForInstance}
-              title="Modok böngészése"
+              title={$t('detail.browseMods')}
             >
               <Download size={20} />
             </button>
@@ -933,7 +934,7 @@
               <button
                 class={`icon-action-btn circle ${showActionsMenu ? 'active' : ''}`}
                 onclick={() => (showActionsMenu = !showActionsMenu)}
-                aria-label="More actions"
+                aria-label={$t('detail.moreActions')}
               >
                 <MoreVertical size={20} />
               </button>
@@ -946,16 +947,16 @@
                       showDuplicateModal = true;
                     }}
                   >
-                    <Copy size={16} /><span>Duplikálás</span>
+                    <Copy size={16} /><span>{$t('detail.duplicate')}</span>
                   </button>
                   <button class="dropdown-item" onclick={browseModsForInstance}>
-                    <Download size={16} /><span>Modok böngészése</span>
+                    <Download size={16} /><span>{$t('detail.browseMods')}</span>
                   </button>
                   <button class="dropdown-item" onclick={handleOpenFolder}>
-                    <FolderOpen size={16} /><span>Mappa megnyitása</span>
+                    <FolderOpen size={16} /><span>{$t('detail.openFolder')}</span>
                   </button>
                   <button class="dropdown-item danger" onclick={() => (showDeleteModal = true)}>
-                    <Trash2 size={16} /><span>Törlés</span>
+                    <Trash2 size={16} /><span>{$t('detail.delete')}</span>
                   </button>
                 </div>
               {/if}
@@ -976,11 +977,11 @@
               <span>
                 {launching || (!!downloadProgress && downloadProgress.percentage < 100)
                   ? downloadProgress
-                    ? 'Letöltés...'
-                    : 'Indítás...'
+                    ? $t('detail.downloading')
+                    : $t('detail.launching')
                   : isRunning
-                    ? 'LEÁLLÍTÁS'
-                    : 'JÁTÉK'}
+                    ? $t('detail.stop')
+                    : $t('detail.play')}
               </span>
             </button>
           </div>
@@ -991,12 +992,12 @@
     <div class="tabs-container">
       <div class="detail-tabs" bind:this={tabsElement}>
         <div class="tab-indicator" style={`width: ${indicatorStyle.width || '0px'}; left: ${indicatorStyle.left || '0px'};`}></div>
-        <button class={`tab-btn ${activeTab === 'overview' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'overview')}>Áttekintés</button>
-        <button class={`tab-btn ${activeTab === 'files' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'files')}>Fájlok</button>
-        <button class={`tab-btn ${activeTab === 'screenshots' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'screenshots')}>Screenshotok</button>
-        <button class={`tab-btn ${activeTab === 'mods' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'mods')}>Modok</button>
-        <button class={`tab-btn ${activeTab === 'logs' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'logs')}>Logok</button>
-        <button class={`tab-btn ${activeTab === 'settings' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'settings')}>Beállítások</button>
+        <button class={`tab-btn ${activeTab === 'overview' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'overview')}>{$t('detail.tabOverview')}</button>
+        <button class={`tab-btn ${activeTab === 'files' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'files')}>{$t('detail.tabFiles')}</button>
+        <button class={`tab-btn ${activeTab === 'screenshots' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'screenshots')}>{$t('detail.tabScreenshots')}</button>
+        <button class={`tab-btn ${activeTab === 'mods' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'mods')}>{$t('detail.tabMods')}</button>
+        <button class={`tab-btn ${activeTab === 'logs' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'logs')}>{$t('detail.tabLogs')}</button>
+        <button class={`tab-btn ${activeTab === 'settings' ? 'active' : ''} ${!indicatorStyle.width || indicatorStyle.width === '0px' ? 'fallback-active' : ''}`} onclick={() => (activeTab = 'settings')}>{$t('detail.tabSettings')}</button>
       </div>
     </div>
 
@@ -1004,25 +1005,25 @@
       {#if activeTab === 'overview'}
         <div class="overview-grid">
           <div class="info-card stats">
-            <h3>Statisztika</h3>
+            <h3>{$t('detail.statistics')}</h3>
             <div class="stat-row">
               <Clock size={18} />
               <div class="stat-text">
-                <span class="label">Játékidő</span>
+                <span class="label">{$t('detail.playtime')}</span>
                 <span class="value">{formatPlaytime(instance.playtime || 0)}</span>
               </div>
             </div>
             <div class="stat-row">
               <Clock size={18} />
               <div class="stat-text">
-                <span class="label">Utoljára játszva</span>
-                <span class="value">{instance.lastPlayed ? new Date(instance.lastPlayed).toLocaleDateString() : 'Soha'}</span>
+                <span class="label">{$t('detail.lastPlayed')}</span>
+                <span class="value">{instance.lastPlayed ? new Date(instance.lastPlayed).toLocaleDateString() : $t('time.never')}</span>
               </div>
             </div>
             <div class="stat-row">
               <ShieldCheck size={18} />
               <div class="stat-text">
-                <span class="label">Létrehozva</span>
+                <span class="label">{$t('detail.created')}</span>
                 <span class="value">{new Date(instance.created).toLocaleDateString()}</span>
               </div>
             </div>
@@ -1030,17 +1031,17 @@
 
           <div class="info-card recent-screenshots">
             <div class="card-header-with-action">
-              <h3>Legutóbbi képek</h3>
+              <h3>{$t('detail.recentScreenshots')}</h3>
               {#if recentScreenshots.length > 0}
                 <button class="view-all-link-styled" onclick={() => (activeTab = 'screenshots')}>
-                  Összes megnyitása
+                  {$t('detail.viewAll')}
                 </button>
               {/if}
             </div>
             {#if recentScreenshots.length === 0}
               <div class="empty-recent">
                 <ImageIcon size={32} />
-                <p>Még nincsenek képek</p>
+                <p>{$t('detail.noScreenshots')}</p>
               </div>
             {:else}
               <div class="recent-previews-grid">
@@ -1067,7 +1068,7 @@
           </div>
         </div>
 
-﻿      {:else if activeTab === 'files'}
+      {:else if activeTab === 'files'}
         <FileManager basePath={instance.gameDir} />
       {:else if activeTab === 'screenshots'}
         <ScreenshotGallery gameDir={instance.gameDir} />
@@ -1080,7 +1081,7 @@
               <div class="mods-header-row">
                 <div class="mods-stats">
                   <Box size={20} class="icon-green" />
-                  <span>{installedMods.length} telepített mod</span>
+                  <span>{$t('mods.installedModsCount', { n: installedMods.length })}</span>
                 </div>
 
                 {#if installedMods.length > 0}
@@ -1088,11 +1089,11 @@
                     <Search size={15} />
                     <input
                       type="text"
-                      placeholder="Keresés a modok között..."
+                      placeholder={$t('mods.searchInstalledPlaceholder')}
                       bind:value={modSearchQuery}
                     />
                     {#if modSearchQuery}
-                      <button class="clear-search-btn" onclick={() => (modSearchQuery = '')} aria-label="Keresés törlése">
+                      <button class="clear-search-btn" onclick={() => (modSearchQuery = '')} aria-label={$t('mods.clearSearch')}>
                         <X size={13} />
                       </button>
                     {/if}
@@ -1100,22 +1101,22 @@
                 {/if}
 
                 <button class="btn btn-primary btn-small" onclick={browseModsForInstance}>
-                  <Download size={16} /> <span>Modok böngészése</span>
+                  <Download size={16} /> <span>{$t('detail.browseMods')}</span>
                 </button>
               </div>
 
               <div class="mods-container-fixed">
                 {#if modsLoading}
                   <div class="mods-loading">
-                    <Loader2 class="spin" /> <span>Művelet folyamatban...</span>
+                    <Loader2 class="spin" /> <span>{$t('mods.pleaseWait')}</span>
                   </div>
                 {:else if installedMods.length === 0}
                   <div class="empty-state-centered">
                     <div class="empty-box">
                       <Box size={48} class="icon-dim" />
-                      <p>Nincsenek telepített modok.</p>
+                      <p>{$t('mods.noInstalledMods')}</p>
                       <button class="btn btn-secondary btn-small" onclick={browseModsForInstance}>
-                        Modok keresése
+                        {$t('mods.browseModsBtn')}
                       </button>
                     </div>
                   </div>
@@ -1123,9 +1124,9 @@
                   <div class="empty-state-centered">
                     <div class="empty-box">
                       <Search size={36} class="icon-dim" />
-                      <p>Nincs találat a(z) "{modSearchQuery}" kifejezésre.</p>
+                      <p>{$t('mods.noSearchResult', { query: modSearchQuery })}</p>
                       <button class="btn btn-secondary btn-small" onclick={() => (modSearchQuery = '')}>
-                        Keresés törlése
+                        {$t('mods.clearSearch')}
                       </button>
                     </div>
                   </div>
@@ -1155,14 +1156,14 @@
                         <div class="mod-actions">
                           <button
                             class="mod-action-icon-btn"
-                            title="Verzió cseréje"
+                            title={$t('mods.replaceTitle')}
                             onclick={() => handleOpenReplace(mod)}
                           >
                             <RefreshCcw size={13} />
                           </button>
                           <button
                             class="mod-action-icon-btn danger"
-                            title="Törlés"
+                            title={$t('detail.delete')}
                             onclick={() => handleDeleteMod(mod.filename)}
                           >
                             <Trash size={13} />
@@ -1170,7 +1171,7 @@
                           <button
                             class={`mod-toggle-btn ${mod.enabled ? 'on' : 'off'}`}
                             onclick={() => handleToggleMod(mod)}
-                            title={mod.enabled ? 'Kikapcsolás' : 'Bekapcsolás'}
+                            title={mod.enabled ? $t('mods.toggleOff') : $t('mods.toggleOn')}
                           >
                             <Power size={13} />
                           </button>
@@ -1189,7 +1190,7 @@
             <div class="logs-sidebar-header">
               <div class="logs-sidebar-title">
                 <FileText size={16} class="icon-green" />
-                <span>Naplófájlok</span>
+                <span>{$t('detail.logsTitle')}</span>
                 <span class="log-count-badge">{logFiles.length}</span>
               </div>
               <div class="logs-sidebar-actions">
@@ -1197,7 +1198,7 @@
                   type="button"
                   class="icon-btn-micro"
                   onclick={loadLogFiles}
-                  title="Naplók frissítése"
+                  title={$t('detail.refreshLogs')}
                 >
                   <RefreshCcw size={14} />
                 </button>
@@ -1205,7 +1206,7 @@
                   type="button"
                   class="icon-btn-micro"
                   onclick={openLogFolder}
-                  title="Napló mappa megnyitása"
+                  title={$t('detail.openLogFolder')}
                 >
                   <FolderOpen size={14} />
                 </button>
@@ -1216,9 +1217,9 @@
               {#if logFiles.length === 0}
                 <div class="empty-logs-sidebar">
                   <FileText size={32} class="icon-dim" />
-                  <p>Nem találhatók log fájlok.</p>
+                  <p>{$t('detail.noLogFiles')}</p>
                   <button class="btn btn-secondary btn-small" onclick={openLogFolder}>
-                    Mappa megnyitása
+                    {$t('detail.openFolder')}
                   </button>
                 </div>
               {:else}
@@ -1245,11 +1246,11 @@
                         {#if log.category === 'crash'}
                           <span class="log-badge-crash">CRASH</span>
                         {:else if log.name === 'latest.log'}
-                          <span class="log-badge-latest">ÚJ</span>
+                          <span class="log-badge-latest">{$t('detail.newBadge')}</span>
                         {/if}
                       </div>
                       <div class="log-meta">
-                        <span class="log-date">{new Date(log.modified * 1000).toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        <span class="log-date">{new Date(log.modified * 1000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                         {#if log.size}
                           <span class="log-size">{formatFileSize(log.size)}</span>
                         {/if}
@@ -1265,7 +1266,7 @@
             {#if isReadingLog}
               <div class="log-loading-box">
                 <Loader2 size={32} class="spin icon-green" />
-                <span>Napló betöltése...</span>
+                <span>{$t('detail.loadingLog')}</span>
               </div>
             {:else if selectedLogContent !== null}
               <div class="log-viewer-container">
@@ -1275,7 +1276,7 @@
                       {selectedLogPath?.split(/[\\/]/).pop()}
                     </span>
                     <span class="log-stats-badge">
-                      {parsedLogLines.length} sor
+                      {$t('detail.linesCount', { n: parsedLogLines.length })}
                     </span>
                   </div>
 
@@ -1284,7 +1285,7 @@
                     <Search size={14} class="search-icon" />
                     <input
                       type="text"
-                      placeholder="Keresés a sorokban..."
+                      placeholder={$t('detail.searchLinesPlaceholder')}
                       bind:value={logSearchQuery}
                       class="log-search-input"
                     />
@@ -1303,7 +1304,7 @@
                       class:active={logLevelFilter === 'all'}
                       onclick={() => (logLevelFilter = 'all')}
                     >
-                      Mind <span class="pill-count">{logCounts.total}</span>
+                      {$t('detail.filterAll')} <span class="pill-count">{logCounts.total}</span>
                     </button>
                     {#if logCounts.errors > 0}
                       <button
@@ -1312,7 +1313,7 @@
                         class:active={logLevelFilter === 'error'}
                         onclick={() => (logLevelFilter = 'error')}
                       >
-                        Hiba <span class="pill-count">{logCounts.errors}</span>
+                        {$t('detail.filterError')} <span class="pill-count">{logCounts.errors}</span>
                       </button>
                     {/if}
                     {#if logCounts.warns > 0}
@@ -1322,7 +1323,7 @@
                         class:active={logLevelFilter === 'warn'}
                         onclick={() => (logLevelFilter = 'warn')}
                       >
-                        Figyelem <span class="pill-count">{logCounts.warns}</span>
+                        {$t('detail.filterWarn')} <span class="pill-count">{logCounts.warns}</span>
                       </button>
                     {/if}
                   </div>
@@ -1334,7 +1335,7 @@
                       class="btn-icon-action"
                       class:active={logWrapLines}
                       onclick={() => (logWrapLines = !logWrapLines)}
-                      title="Sortörés ki/be"
+                      title={$t('detail.toggleWrap')}
                     >
                       <AlignLeft size={16} />
                     </button>
@@ -1342,7 +1343,7 @@
                       type="button"
                       class="btn-icon-action"
                       onclick={() => scrollLogTo('top')}
-                      title="Ugrás az elejére"
+                      title={$t('detail.scrollTop')}
                     >
                       <ArrowUp size={16} />
                     </button>
@@ -1350,7 +1351,7 @@
                       type="button"
                       class="btn-icon-action"
                       onclick={() => scrollLogTo('bottom')}
-                      title="Ugrás az aljára"
+                      title={$t('detail.scrollBottom')}
                     >
                       <ArrowDown size={16} />
                     </button>
@@ -1358,12 +1359,12 @@
                       type="button"
                       class="btn btn-secondary btn-small"
                       onclick={handleCopyLog}
-                      title="Másolás vágólapra"
+                      title={$t('detail.copyLog')}
                     >
                       {#if logCopied}
-                        <Check size={14} class="icon-green" /> <span>Másolva!</span>
+                        <Check size={14} class="icon-green" /> <span>{$t('detail.copied')}</span>
                       {:else}
-                        <Copy size={14} /> <span>Másolás</span>
+                        <Copy size={14} /> <span>{$t('detail.copyLog')}</span>
                       {/if}
                     </button>
                   </div>
@@ -1378,14 +1379,14 @@
                   {#if filteredLogLines.length === 0}
                     <div class="no-matching-lines">
                       {#if logSearchQuery}
-                        <p>Nincs találat a következőre: <strong>"{logSearchQuery}"</strong></p>
+                        <p>{$t('detail.noMatchingLines', { query: logSearchQuery })}</p>
                         <button class="btn btn-secondary btn-small" onclick={() => (logSearchQuery = '')}>
-                          Keresés törlése
+                          {$t('mods.clearSearch')}
                         </button>
                       {:else}
-                        <p>Nincsenek sorok a kiválasztott szűrővel ({logLevelFilter}).</p>
+                        <p>{$t('detail.noFilterLines', { filter: logLevelFilter })}</p>
                         <button class="btn btn-secondary btn-small" onclick={() => (logLevelFilter = 'all')}>
-                          Összes megjelenítése
+                          {$t('detail.showAllLines')}
                         </button>
                       {/if}
                     </div>
@@ -1404,7 +1405,7 @@
             {:else}
               <div class="log-placeholder">
                 <div class="placeholder-icon-circle"><FileText size={48} /></div>
-                <p>Válassz ki egy log fájlt a bal oldali listából</p>
+                <p>{$t('detail.selectLogPlaceholder')}</p>
               </div>
             {/if}
           </div>
@@ -1412,19 +1413,19 @@
       {:else if activeTab === 'settings'}
         <div class="instance-settings-view">
           <div class="info-card settings-card">
-            <h3>Konfiguráció</h3>
+            <h3>{$t('detail.configTitle')}</h3>
             <div class="setting-item-group">
               <div class="setting-item">
-                <label>Ikon módosítása</label>
+                <label>{$t('detail.changeIcon')}</label>
                 <button class="action-btn-styled" onclick={handleSelectIcon}>
                   <ImageIcon size={18} />
-                  <span>Ikon választása...</span>
+                  <span>{$t('detail.selectIconBtn')}</span>
                 </button>
               </div>
               <div class="setting-item">
                 <div class="memory-control-wrapper">
                   <div class="memory-header">
-                    <label for="mem-input">Memória méret</label>
+                    <label for="mem-input">{$t('detail.memorySize')}</label>
                     <div class="memory-display-box">
                       <input
                         id="mem-input-number"
@@ -1518,22 +1519,22 @@
                 </div>
               </div>
               <div class="setting-item">
-                <label>Játék adatok</label>
+                <label>{$t('detail.gameData')}</label>
                 <div class="input-with-button">
                   <input type="text" value={instance.gameDir} readonly />
-                  <button class="icon-btn-small" onclick={handleSelectGameDir} title="Mappa váltása">
+                  <button class="icon-btn-small" onclick={handleSelectGameDir} title={$t('detail.changeFolder')}>
                     <FolderOpen size={16} />
                   </button>
-                  <button class="icon-btn-small" onclick={resetGameDir} title="Visszaállítás">
+                  <button class="icon-btn-small" onclick={resetGameDir} title={$t('detail.resetFolder')}>
                     <RotateCcw size={16} />
                   </button>
                 </div>
               </div>
               <div class="setting-item">
-                <label>Java Elérési út</label>
+                <label>{$t('detail.javaPath')}</label>
                 <div class="input-with-button">
-                  <input type="text" value={instance.javaPath || 'Alapértelmezett'} readonly />
-                  <button class="icon-btn-small" onclick={handleSelectJava} title="Java választása">
+                  <input type="text" value={instance.javaPath || $t('detail.defaultJava')} readonly />
+                  <button class="icon-btn-small" onclick={handleSelectJava} title={$t('detail.selectJava')}>
                     <Coffee size={16} />
                   </button>
                 </div>
@@ -1544,7 +1545,7 @@
       {/if}
     </div>
 
-﻿    {#if replacingMod}
+    {#if replacingMod}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
@@ -1565,7 +1566,7 @@
                 onclick={() => !replaceLoading && handleToggleDropdown(!showVersionDropdown)}
               >
                 <span class="current-selection">
-                  {replaceLoading ? 'Keresés...' : 'Válassz új verziót'}
+                  {replaceLoading ? $t('mods.searching') : $t('mods.chooseVersion')}
                 </span>
                 <ChevronDown size={16} class={`pill-arrow ${showVersionDropdown ? 'rotate' : ''}`} />
 
@@ -1586,7 +1587,7 @@
                       </div>
                     {/each}
                     {#if replaceVersions.length === 0 && !replaceLoading}
-                      <div class="pill-dropdown-empty">Nincs elérhető verzió</div>
+                      <div class="pill-dropdown-empty">{$t('mods.noAvailableVersions')}</div>
                     {/if}
                   </div>
                 {/if}
@@ -1611,11 +1612,11 @@
                 <Download size={20} class="icon-green" />
               </div>
               <div class="modal-header-texts">
-                <h2>Folyamat Állapota</h2>
+                <h2>{$t('detail.processStatus')}</h2>
                 <span class="modal-header-sub">{instance.name} • Minecraft {instance.mcVersion} ({instance.loader})</span>
               </div>
             </div>
-            <button class="close-btn" onclick={() => (showProgressModal = false)} aria-label="Bezárás">
+            <button class="close-btn" onclick={() => (showProgressModal = false)} aria-label={$t('settings.cancel')}>
               <X size={20} />
             </button>
           </div>
@@ -1623,7 +1624,7 @@
             <!-- Progress Bar Hero -->
             <div class="progress-hero-banner">
               <div class="hero-status-row">
-                <span class="hero-status-tag">{downloadProgress.status || 'Letöltés folyamatban...'}</span>
+                <span class="hero-status-tag">{downloadProgress.status || $t('detail.downloading')}</span>
                 <span class="hero-pct-val">{Math.round(downloadProgress.percentage)}%</span>
               </div>
               <div class="hero-bar-track">
@@ -1636,7 +1637,7 @@
               <div class="prog-stat">
                 <div class="stat-header">
                   <Box size={14} class="stat-icon" />
-                  <span class="label">Fájlok</span>
+                  <span class="label">{$t('detail.progressFiles')}</span>
                 </div>
                 <span class="value">{downloadProgress.current_files} / {downloadProgress.total_files}</span>
               </div>
@@ -1644,7 +1645,7 @@
               <div class="prog-stat">
                 <div class="stat-header">
                   <HardDrive size={14} class="stat-icon" />
-                  <span class="label">Adatmennyiség</span>
+                  <span class="label">{$t('detail.progressData')}</span>
                 </div>
                 <span class="value">
                   {#if downloadProgress.total_bytes > 1}
@@ -1658,7 +1659,7 @@
               <div class="prog-stat">
                 <div class="stat-header">
                   <Zap size={14} class="stat-icon icon-green" />
-                  <span class="label">Sebesség</span>
+                  <span class="label">{$t('detail.progressSpeed')}</span>
                 </div>
                 <span class="value icon-green">
                   {downloadProgress.speed > 0 ? downloadProgress.speed.toFixed(2) + ' MB/s' : '--'}
@@ -1668,7 +1669,7 @@
               <div class="prog-stat">
                 <div class="stat-header">
                   <Clock size={14} class="stat-icon" />
-                  <span class="label">Hátralévő idő</span>
+                  <span class="label">{$t('detail.progressRemaining')}</span>
                 </div>
                 <span class="value">
                   {downloadProgress.remaining_time || '--'}
@@ -1680,20 +1681,20 @@
             <div class="current-file-section">
               <div class="current-file-heading">
                 <FileText size={14} />
-                <span>Aktuális fájl:</span>
+                <span>{$t('detail.currentFile')}</span>
               </div>
               <div class="file-name-scroll">
-                <code>{downloadProgress.current_file_name || 'Előkészítés...'}</code>
+                <code>{downloadProgress.current_file_name || $t('mods.preparingFiles')}</code>
               </div>
             </div>
 
             <!-- Modal Footer -->
             <div class="progress-modal-footer">
               <p class="footer-hint-text">
-                A letöltés a háttérben folytatódik, ha bezárod ezt az ablakot.
+                {$t('detail.bgHint')}
               </p>
               <button type="button" class="btn btn-secondary btn-small" onclick={() => (showProgressModal = false)}>
-                Elrejtés
+                {$t('detail.hideBtn')}
               </button>
             </div>
           </div>
@@ -1708,13 +1709,13 @@
         <div class="modal-content delete-modal" onclick={(e) => e.stopPropagation()}>
           <div class="modal-header centered">
             <div class="alert-icon-wrapper"><AlertTriangle size={32} /></div>
-            <h2>Instance Törlése</h2>
+            <h2>{$t('detail.deleteTitle')}</h2>
           </div>
-          <p class="modal-desc centered">Biztosan törölni szeretnéd?</p>
+          <p class="modal-desc centered">{$t('detail.deleteConfirm')}</p>
           <div class="modal-actions spaced">
-            <button type="button" class="btn btn-secondary flex-1" onclick={closeDeleteModal} disabled={isDeleting}>Mégse</button>
+            <button type="button" class="btn btn-secondary flex-1" onclick={closeDeleteModal} disabled={isDeleting}>{$t('settings.cancel')}</button>
             <button type="button" class="btn btn-danger flex-1" onclick={confirmDelete} disabled={isDeleting}>
-              {isDeleting ? 'Törlés folyamatban...' : 'Törlés'}
+              {isDeleting ? $t('detail.deleting') : $t('detail.delete')}
             </button>
           </div>
         </div>
@@ -1766,7 +1767,7 @@
               e.stopPropagation();
               handleCopyImage();
             }}
-            title="Másolás"
+            title={$t('detail.copyLog')}
           >
             <Copy size={20} />
           </button>
@@ -1803,7 +1804,7 @@
     onClose={() => (showDuplicateModal = false)}
     onCreated={(newInstance) => {
       showDuplicateModal = false;
-      showNotification('Instance sikeresen duplikálva!', 'success');
+      showNotification($t('notify.instanceDuplicated'), 'success');
       if (newInstance && newInstance.id) {
         goto(`/instance/${newInstance.id}`);
       }

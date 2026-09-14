@@ -5,6 +5,7 @@
   import type { Profile } from '../../types/profile';
   import { showNotification } from '../../stores/notification';
   import { portal } from '../../utils/portal';
+  import { t } from '../../stores/i18n';
   import './ProfileManager.css';
 
   let profiles = $state<Profile[]>([]);
@@ -67,10 +68,10 @@
       const newProfile: Profile = await invoke('create_profile', { name: newProfileName });
       profiles = [...profiles, newProfile];
       if (!activeProfileId) handleSelectProfile(newProfile.id);
-      showNotification('Offline profil létrehozva', 'success');
+      showNotification($t('profiles.created'), 'success');
       closeModal();
     } catch (err) {
-      showNotification(`Hiba: ${err}`, 'error');
+      showNotification(`Error: ${err}`, 'error');
     }
   }
 
@@ -80,13 +81,13 @@
       const newProfile: Profile = await invoke('login_microsoft');
       profiles = [...profiles, newProfile];
       handleSelectProfile(newProfile.id);
-      showNotification('Sikeres Microsoft bejelentkezés!', 'success');
+      showNotification($t('profiles.msSuccess'), 'success');
       setIsLoggingIn(false);
       closeModal();
     } catch (err) {
       console.error('Microsoft login failed:', err);
       setIsLoggingIn(false);
-      showNotification('Sikertelen bejelentkezés', 'error');
+      showNotification($t('profiles.msFailed'), 'error');
     }
   }
 
@@ -106,10 +107,10 @@
         if (nextActive) localStorage.setItem('activeProfileId', nextActive);
         else localStorage.removeItem('activeProfileId');
       }
-      showNotification('Profil törölve', 'success');
+      showNotification($t('profiles.deleted'), 'success');
       closeModal();
     } catch (err) {
-      showNotification('Hiba a törléskor', 'error');
+      showNotification('Error deleting profile', 'error');
     }
   }
 
@@ -123,20 +124,20 @@
   <div class="profile-header">
     <div class="title-section">
       <div class="title-row">
-        <h1>Profilkezelő</h1>
-        <span class="profile-count-pill">{profiles.length} profil</span>
+        <h1>{$t('profiles.title')}</h1>
+        <span class="profile-count-pill">{profiles.length}</span>
       </div>
-      <p>Menedzseld a Minecraft fiókjaidat és válassz aktív profilt</p>
+      <p>{$t('profiles.subtitle')}</p>
     </div>
     <button class="btn btn-primary add-profile-btn" onclick={() => (showAddModal = true)}>
       <UserPlus size={18} />
-      <span>Profil hozzáadása</span>
+      <span>{$t('profiles.addAccount')}</span>
     </button>
   </div>
 
   <div class="profiles-container">
     {#if loading}
-      <div class="loading-profiles">Profilok betöltése...</div>
+      <div class="loading-profiles">{$t('profiles.loading')}</div>
     {:else if profiles.length > 0}
       <div class="profiles-grid">
         {#each profiles as profile (profile.id)}
@@ -156,7 +157,7 @@
                 />
               </div>
               {#if activeProfileId === profile.id}
-                <div class="active-indicator-badge" title="Aktív fiók">
+                <div class="active-indicator-badge" title={$t('profiles.activeAccount')}>
                   <CheckCircle2 size={13} />
                 </div>
               {/if}
@@ -166,7 +167,7 @@
               <div class="profile-name-row">
                 <h3 title={profile.name}>{profile.name}</h3>
                 {#if activeProfileId === profile.id}
-                  <span class="status-pill-active">Aktív</span>
+                  <span class="status-pill-active">{$t('profiles.active')}</span>
                 {/if}
               </div>
 
@@ -200,7 +201,7 @@
                     handleSelectProfile(profile.id);
                   }}
                 >
-                  Kiválasztás
+                  {$t('profiles.select')}
                 </button>
               {/if}
               <button
@@ -209,8 +210,8 @@
                   e.stopPropagation();
                   profileToDelete = profile;
                 }}
-                title="Profil törlése"
-                aria-label="Profil törlése"
+                title={$t('profiles.delete')}
+                aria-label={$t('profiles.delete')}
               >
                 <Trash2 size={16} />
               </button>
@@ -226,9 +227,9 @@
           <div class="empty-icon-wrapper">
             <UserPlus size={44} />
           </div>
-          <h3>Nincs még profilod</h3>
-          <p>Hozz létre egy offline profilt vagy lépj be a Microsoft fiókoddal a játék indításához.</p>
-          <button class="btn btn-primary">Első profil létrehozása</button>
+          <h3>{$t('profiles.emptyTitle')}</h3>
+          <p>{$t('profiles.emptySub')}</p>
+          <button class="btn btn-primary">{$t('profiles.createFirst')}</button>
         </div>
       </div>
     {/if}
@@ -239,7 +240,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class={`modal-overlay ${isClosing ? 'closing' : ''}`} use:portal onclick={closeModal}>
       <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-        <button class="modal-close-btn" onclick={closeModal} aria-label="Bezárás">
+        <button class="modal-close-btn" onclick={closeModal} aria-label="Close">
           <X size={18} />
         </button>
 
@@ -249,8 +250,8 @@
               <div class="header-icon-circle">
                 <UserPlus size={26} />
               </div>
-              <h2>Hogyan szeretnél belépni?</h2>
-              <p class="modal-subtitle">Válaszd ki a fiók típusát</p>
+              <h2>{$t('profiles.howToLogin')}</h2>
+              <p class="modal-subtitle">{$t('profiles.selectAccountType')}</p>
             </div>
 
             <div class="auth-options">
@@ -264,8 +265,8 @@
                   </svg>
                 </div>
                 <div class="option-text">
-                  <h3>Microsoft Fiók</h3>
-                  <p>Eredeti Minecraft fiók, skinek és hivatalos szerverek elérése</p>
+                  <h3>{$t('profiles.microsoft')}</h3>
+                  <p>{$t('profiles.msDesc')}</p>
                 </div>
                 <ChevronRight size={18} class="arrow-icon" />
               </div>
@@ -275,15 +276,15 @@
                   <Monitor size={22} />
                 </div>
                 <div class="option-text">
-                  <h3>Offline Fiók</h3>
-                  <p>Gyors, jelszó nélküli belépés tetszőleges felhasználónévvel</p>
+                  <h3>{$t('profiles.offline')}</h3>
+                  <p>{$t('profiles.offlineDesc')}</p>
                 </div>
                 <ChevronRight size={18} class="arrow-icon" />
               </div>
             </div>
 
             <div class="modal-actions">
-              <button type="button" class="btn btn-secondary full-width" onclick={closeModal}>Mégse</button>
+              <button type="button" class="btn btn-secondary full-width" onclick={closeModal}>{$t('settings.cancel')}</button>
             </div>
           </div>
         {:else if addStep === 'offline'}
@@ -292,8 +293,8 @@
               <div class="header-icon-circle">
                 <Monitor size={26} />
               </div>
-              <h2>Offline Profil</h2>
-              <p class="modal-subtitle">Add meg a kívánt játékosnevet</p>
+              <h2>{$t('profiles.offlineTitle')}</h2>
+              <p class="modal-subtitle">{$t('profiles.enterUsername')}</p>
             </div>
 
             <form onsubmit={handleAddOffline} class="full-width">
@@ -306,24 +307,24 @@
                   />
                 </div>
                 <div class="preview-text">
-                  <span class="preview-label">Skin előnézet</span>
+                  <span class="preview-label">{$t('profiles.skinPreview')}</span>
                   <span class="preview-username">{newProfileName.trim() || 'Steve'}</span>
                 </div>
               </div>
 
               <div class="input-group">
-                <label for="offline-username-input">Felhasználónév</label>
+                <label for="offline-username-input">{$t('profiles.usernameLabel')}</label>
                 <input
                   id="offline-username-input"
                   type="text"
-                  placeholder="Pl.: Player123"
+                  placeholder={$t('profiles.usernamePlaceholder')}
                   bind:value={newProfileName}
                 />
               </div>
 
               <div class="modal-actions spaced">
-                <button type="button" class="btn btn-secondary" onclick={() => (addStep = 'select')}>Vissza</button>
-                <button type="submit" class="btn btn-primary flex-1" disabled={!newProfileName.trim()}>Létrehozás</button>
+                <button type="button" class="btn btn-secondary" onclick={() => (addStep = 'select')}>{$t('profiles.back')}</button>
+                <button type="submit" class="btn btn-primary flex-1" disabled={!newProfileName.trim()}>{$t('profiles.create')}</button>
               </div>
             </form>
           </div>
@@ -338,14 +339,14 @@
                   <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
                 </svg>
               </div>
-              <h2>Microsoft Bejelentkezés</h2>
-              <p class="modal-subtitle">Eredeti Minecraft fiók csatlakoztatása</p>
+              <h2>{$t('profiles.msTitle')}</h2>
+              <p class="modal-subtitle">{$t('profiles.msSub')}</p>
             </div>
 
             <p class="modal-desc centered">
               {isLoggingIn
-                ? "Kérlek végezd el a bejelentkezést a felugró Microsoft ablakban..."
-                : "A bejelentkezéshez a rendszer megnyitja a Microsoft OAuth ablakát."}
+                ? $t('profiles.msLoggingIn')
+                : $t('profiles.msPrompt')}
             </p>
 
             {#if isLoggingIn}
@@ -355,14 +356,14 @@
             {/if}
 
             <div class="modal-actions spaced mt-40">
-              <button type="button" class="btn btn-secondary" disabled={isLoggingIn} onclick={() => (addStep = 'select')}>Vissza</button>
+              <button type="button" class="btn btn-secondary" disabled={isLoggingIn} onclick={() => (addStep = 'select')}>{$t('profiles.back')}</button>
               <button
                 type="button"
                 class="btn btn-primary flex-1"
                 disabled={isLoggingIn}
                 onclick={handleMicrosoftLogin}
               >
-                {isLoggingIn ? "Folyamatban..." : "Bejelentkezés"}
+                {isLoggingIn ? $t('profiles.inProgress') : $t('profiles.login')}
               </button>
             </div>
           </div>
@@ -376,7 +377,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class={`modal-overlay ${isClosing ? 'closing' : ''}`} use:portal onclick={closeModal}>
       <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-        <button class="modal-close-btn" onclick={closeModal} aria-label="Bezárás">
+        <button class="modal-close-btn" onclick={closeModal} aria-label="Close">
           <X size={18} />
         </button>
 
@@ -384,16 +385,16 @@
           <div class="alert-icon-wrapper">
             <AlertTriangle size={30} />
           </div>
-          <h2>Profil törlése</h2>
+          <h2>{$t('profiles.deleteTitle')}</h2>
         </div>
 
         <p class="modal-desc centered">
-          Biztosan törölni szeretnéd a(z) <span class="delete-profile-name">{profileToDelete.name}</span> profilt?
+          {$t('profiles.deleteConfirm', { name: profileToDelete.name })}
         </p>
 
         <div class="modal-actions spaced">
-          <button type="button" class="btn btn-secondary flex-1" onclick={closeModal}>Mégse</button>
-          <button type="button" class="btn btn-danger flex-1" onclick={confirmDelete}>Törlés</button>
+          <button type="button" class="btn btn-secondary flex-1" onclick={closeModal}>{$t('settings.cancel')}</button>
+          <button type="button" class="btn btn-danger flex-1" onclick={confirmDelete}>{$t('profiles.deleteBtn')}</button>
         </div>
       </div>
     </div>

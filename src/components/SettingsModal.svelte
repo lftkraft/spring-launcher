@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
+  import { getVersion } from '@tauri-apps/api/app';
   import { X, FolderOpen, Save, HardDrive, Cpu, Languages, Settings as SettingsIcon } from 'lucide-svelte';
   import { portal } from '../utils/portal';
+  import { t, setLanguage, type Language } from '../stores/i18n';
   import './SettingsModal.css';
 
   interface Settings {
@@ -21,9 +23,11 @@
   let loading = $state(true);
   let isClosing = $state(false);
   let saving = $state(false);
+  let appVersion = $state<string>('');
 
   onMount(() => {
     loadSettings();
+    getVersion().then(v => appVersion = v).catch(() => {});
     document.body.classList.add('modal-open');
     return () => {
       document.body.classList.remove('modal-open');
@@ -58,10 +62,14 @@
     try {
       saving = true;
       settings.default_memory = Number(settings.default_memory) || 4096;
+      settings.theme = 'dark';
       await invoke('save_settings', { newSettings: settings });
+      if (settings.language === 'en' || settings.language === 'hu' || settings.language === 'de') {
+        setLanguage(settings.language as Language);
+      }
       handleClose();
     } catch (err) {
-      alert('Hiba a mentéskor: ' + err);
+      alert('Error saving settings: ' + err);
       saving = false;
     }
   }
@@ -86,7 +94,10 @@
       <div class="settings-header">
         <div class="header-title">
           <SettingsIcon size={24} class="icon-green" />
-          <h2>Beállítások</h2>
+          <h2>{$t('settings.title')}</h2>
+          {#if appVersion}
+            <span class="settings-version-badge">v{appVersion}</span>
+          {/if}
         </div>
         <button class="close-btn" onclick={handleClose} aria-label="Close"><X size={20} /></button>
       </div>
@@ -95,26 +106,26 @@
         <section class="settings-section">
           <div class="section-label">
             <HardDrive size={18} />
-            <span>Tárhely</span>
+            <span>{$t('settings.storage')}</span>
           </div>
           <div class="setting-control">
-            <label for="launcher-dir">Launcher könyvtár</label>
+            <label for="launcher-dir">{$t('settings.launcherDir')}</label>
             <div class="input-group">
               <input id="launcher-dir" type="text" value={settings.launcher_dir} readonly />
               <button class="icon-btn" onclick={handleSelectDir} type="button"><FolderOpen size={18} /></button>
             </div>
-            <p class="helper-text">Itt lesznek tárolva az instance-ek és a játék adatok.</p>
+            <p class="helper-text">{$t('settings.launcherDirHelp')}</p>
           </div>
         </section>
 
         <section class="settings-section">
           <div class="section-label">
             <Cpu size={18} />
-            <span>Teljesítmény</span>
+            <span>{$t('settings.performance')}</span>
           </div>
           <div class="memory-control-wrapper">
             <div class="memory-header">
-              <label for="default-memory">Alapértelmezett Memória</label>
+              <label for="default-memory">{$t('settings.defaultMemory')}</label>
               <div class="memory-display-box">
                 <input
                   id="default-memory-input"
@@ -194,21 +205,21 @@
         <section class="settings-section">
           <div class="section-label">
             <Languages size={18} />
-            <span>Nyelv és Megjelenés</span>
+            <span>{$t('settings.appearanceLang')}</span>
           </div>
           <div class="setting-row">
             <div class="setting-control half">
-              <label for="language-select">Nyelv</label>
+              <label for="language-select">{$t('settings.language')}</label>
               <select id="language-select" bind:value={settings.language}>
-                <option value="hu">Magyar</option>
                 <option value="en">English</option>
+                <option value="hu">Magyar</option>
+                <option value="de">Deutsch</option>
               </select>
             </div>
             <div class="setting-control half">
-              <label for="theme-select">Téma</label>
-              <select id="theme-select" bind:value={settings.theme}>
-                <option value="dark">Sötét</option>
-                <option value="light">Világos (Hamarosan)</option>
+              <label for="theme-select">{$t('settings.theme')}</label>
+              <select id="theme-select" bind:value={settings.theme} disabled>
+                <option value="dark">{$t('settings.themeDark')}</option>
               </select>
             </div>
           </div>
@@ -216,10 +227,10 @@
       </div>
 
       <div class="settings-footer">
-        <button class="btn btn-secondary" onclick={handleClose}>Mégse</button>
+        <button class="btn btn-secondary" onclick={handleClose}>{$t('settings.cancel')}</button>
         <button class="btn btn-primary" onclick={handleSave} disabled={saving}>
           <Save size={18} />
-          <span>Mentés</span>
+          <span>{$t('settings.save')}</span>
         </button>
       </div>
     </div>

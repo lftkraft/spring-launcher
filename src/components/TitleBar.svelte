@@ -2,7 +2,9 @@
   import { onMount, onDestroy } from 'svelte';
   import { Minus, Leaf, Sparkles } from 'lucide-svelte';
   import { getCurrentWindow } from '@tauri-apps/api/window';
+  import { getVersion } from '@tauri-apps/api/app';
   import { availableUpdate, showUpdaterModal } from '../stores/updater';
+  import { t } from '../stores/i18n';
   import './TitleBar.css';
 
   let {
@@ -19,6 +21,7 @@
   let splashPhase = $state<'idle' | 'bar' | 'circle' | 'fadeout' | 'collapse' | 'done'>('idle');
   let forceExpanded = $state(false);
   let isHolding = $state(false);
+  let appVersion = $state<string>('');
   let holdTimeout: ReturnType<typeof setTimeout> | null = null;
   let unlistenResize: (() => void) | undefined;
 
@@ -38,6 +41,11 @@
   }
 
   onMount(async () => {
+    try {
+      appVersion = await getVersion();
+    } catch (e) {
+      console.warn('Failed to get app version:', e);
+    }
     try {
       const win = getCurrentWindow();
       unlistenResize = await win.onResized(() => {
@@ -116,6 +124,9 @@
     <Leaf class="titlebar-icon" />
     <span class="titlebar-spring">Spring</span>
     <span class="titlebar-launcher">launcher</span>
+    {#if appVersion}
+      <span class="titlebar-version">v{appVersion}</span>
+    {/if}
   </div>
 
   <div class="titlebar-right">
@@ -123,7 +134,7 @@
       <button
         class="titlebar-update-badge"
         onclick={() => showUpdaterModal.set(true)}
-        title={`Frissítés érhető el: v${$availableUpdate.version}`}
+        title={$t('updater.updateAvailable', { version: $availableUpdate.version })}
       >
         <Sparkles size={14} class="badge-sparkle-icon" />
         <span>v{$availableUpdate.version}</span>

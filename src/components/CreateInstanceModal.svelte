@@ -3,6 +3,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { X, Box, Check, ChevronLeft, ChevronDown, Cpu, Layout, Image as ImageIcon, Loader2 } from 'lucide-svelte';
   import { portal } from '../utils/portal';
+  import { t } from '../stores/i18n';
   import './CreateInstanceModal.css';
 
   type Step = 'loader' | 'details';
@@ -24,7 +25,7 @@
   $effect(() => {
     if (duplicateSource) {
       step = 'details';
-      name = `${duplicateSource.name} (Másolat)`;
+      name = `${duplicateSource.name} (Copy)`;
       mcVersion = duplicateSource.mcVersion || duplicateSource.mc_version || '';
       loader = (duplicateSource.loader || 'vanilla').toLowerCase();
       loaderVersion = duplicateSource.loaderVersion || duplicateSource.loader_version || '';
@@ -75,7 +76,7 @@
       mcVersions = versions;
       if (!mcVersion && versions.length > 0) mcVersion = versions[0];
     } catch (err) {
-      error = 'Hiba a verziók betöltésekor';
+      error = String(err);
     } finally {
       loading = false;
     }
@@ -106,8 +107,8 @@
   async function selectIcon() {
     try {
       const path = await invoke<string | null>('select_file', {
-        title: 'Válassz ikont',
-        filterName: 'Képek',
+        title: 'Select Icon',
+        filterName: 'Images',
         filterExt: 'png'
       });
       if (path) {
@@ -122,7 +123,7 @@
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     if (!name.trim()) {
-      error = 'Adj meg egy nevet!';
+      error = $t('createInstance.errName');
       return;
     }
 
@@ -166,8 +167,8 @@
 
     {#if step === 'loader'}
       <div class="modal-step fade-in">
-        <h2>Válassz típust</h2>
-        <p class="subtitle">Milyen Minecraftot szeretnél telepíteni?</p>
+        <h2>{$t('createInstance.selectType')}</h2>
+        <p class="subtitle">{$t('createInstance.selectTypeSub')}</p>
 
         <div class="loader-grid">
           <div
@@ -182,7 +183,7 @@
             </div>
             <div class="loader-info">
               <h3>Vanilla</h3>
-              <p>Módosítások nélküli, gyári élmény.</p>
+              <p>{$t('createInstance.vanillaDesc')}</p>
             </div>
             <Check size={20} class="check-icon" />
           </div>
@@ -199,7 +200,7 @@
             </div>
             <div class="loader-info">
               <h3>NeoForge</h3>
-              <p>Új generációs modbetöltő a modern verziókhoz.</p>
+              <p>{$t('createInstance.neoforgeDesc')}</p>
             </div>
             <Check size={20} class="check-icon" />
           </div>
@@ -216,7 +217,7 @@
             </div>
             <div class="loader-info">
               <h3>Forge</h3>
-              <p>A legnépszerűbb klasszikus modbetöltő.</p>
+              <p>{$t('createInstance.forgeDesc')}</p>
             </div>
             <Check size={20} class="check-icon" />
           </div>
@@ -233,7 +234,7 @@
             </div>
             <div class="loader-info">
               <h3>Fabric</h3>
-              <p>Könnyed, modern és gyors modbetöltő.</p>
+              <p>{$t('createInstance.fabricDesc')}</p>
             </div>
             <Check size={20} class="check-icon" />
           </div>
@@ -250,7 +251,7 @@
             </div>
             <div class="loader-info">
               <h3>Quilt</h3>
-              <p>Moduláris, Fabric-kompatibilis modbetöltő.</p>
+              <p>{$t('createInstance.quiltDesc')}</p>
             </div>
             <Check size={20} class="check-icon" />
           </div>
@@ -259,10 +260,10 @@
     {:else}
       <div class="modal-step fade-in">
         <button class="back-link" onclick={() => (step = 'loader')}>
-          <ChevronLeft size={16} /> Vissza a típusokhoz
+          <ChevronLeft size={16} /> {$t('createInstance.backToTypes')}
         </button>
-        <h2>{duplicateSource ? 'Instance duplikálása' : 'Részletek'}</h2>
-        <p class="subtitle">{duplicateSource ? 'Állítsd be a másolat adatait. A modok, mentések és konfigurációk másolásra kerülnek.' : 'Állítsd be az instance paramétereit.'}</p>
+        <h2>{duplicateSource ? $t('createInstance.dupTitle') : $t('createInstance.title')}</h2>
+        <p class="subtitle">{duplicateSource ? $t('createInstance.dupSub') : $t('createInstance.sub')}</p>
 
         <form onsubmit={handleSubmit} class="details-form">
           <div class="icon-upload-section">
@@ -272,16 +273,16 @@
               {:else}
                 <ImageIcon size={32} />
               {/if}
-              <div class="icon-overlay" onclick={selectIcon}>Módosítás</div>
+              <div class="icon-overlay" onclick={selectIcon}>{$t('createInstance.changeIcon')}</div>
             </div>
           </div>
 
           <div class="input-field">
-            <label for="inst-name">Instance neve</label>
+            <label for="inst-name">{$t('createInstance.name')}</label>
             <input
               id="inst-name"
               type="text"
-              placeholder="Pl: Kalandos 1.21"
+              placeholder={$t('createInstance.namePlaceholder')}
               bind:value={name}
               autofocus
             />
@@ -289,7 +290,7 @@
 
           <div class="form-row">
             <div class="input-field flex-1">
-              <label for="inst-version">Minecraft verzió</label>
+              <label for="inst-version">{$t('createInstance.mcVersion')}</label>
               <div class="version-selector-container">
                 <div
                   id="inst-version"
@@ -319,7 +320,7 @@
 
             {#if loader !== 'vanilla'}
               <div class="input-field flex-1 animate-slide-down">
-                <label for="loader-version">{loader.charAt(0).toUpperCase() + loader.slice(1)} verzió</label>
+                <label for="loader-version">{$t('createInstance.loaderVersion', { loader: loader.charAt(0).toUpperCase() + loader.slice(1) })}</label>
                 <div class="version-selector-container">
                   <select
                     id="loader-version"
@@ -329,7 +330,7 @@
                     disabled={loadersLoading}
                   >
                     {#if loadersLoading}
-                      <option>Betöltés...</option>
+                      <option>{$t('createInstance.loading')}</option>
                     {:else}
                       {#each loaderVersions as v}
                         <option value={v}>{v}</option>
@@ -345,7 +346,7 @@
             <div class="memory-header">
               <div class="memory-label-group">
                 <Cpu size={18} />
-                <label for="inst-memory-input">Memória (RAM)</label>
+                <label for="inst-memory-input">{$t('createInstance.memory')}</label>
               </div>
               <div class="memory-display-box">
                 <input
@@ -419,7 +420,7 @@
             {:else}
               <Check size={18} />
             {/if}
-            <span>{duplicateSource ? 'Instance duplikálása' : 'Instance létrehozása'}</span>
+            <span>{duplicateSource ? $t('createInstance.duplicate') : $t('createInstance.create')}</span>
           </button>
         </form>
       </div>

@@ -4,6 +4,7 @@
   import { check } from '@tauri-apps/plugin-updater';
   import { relaunch } from '@tauri-apps/plugin-process';
   import { availableUpdate, showUpdaterModal, isCheckingUpdate } from '../stores/updater';
+  import { t } from '../stores/i18n';
 
   let isDownloading = $state(false);
   let isInstalled = $state(false);
@@ -62,7 +63,7 @@
     } catch (err: any) {
       console.error('[Updater] Download/install error:', err);
       isDownloading = false;
-      errorMessage = err?.message || 'Nem sikerült letölteni a frissítést.';
+      errorMessage = err?.message || $t('updater.downloadFailed');
     }
   }
 
@@ -94,12 +95,12 @@
         <div class="updater-title">
           <Sparkles class="icon-sparkle" size={24} />
           <div>
-            <h3>Új frissítés érhető el!</h3>
+            <h3>{$t('updater.title')}</h3>
             <span class="version-tag">v{$availableUpdate.version}</span>
           </div>
         </div>
         {#if !isDownloading}
-          <button class="close-btn" onclick={dismiss} title="Bezárás">
+          <button class="close-btn" onclick={dismiss} title={$t('updater.close')}>
             <X size={18} />
           </button>
         {/if}
@@ -108,13 +109,13 @@
       <div class="updater-body">
         {#if $availableUpdate.body}
           <div class="release-notes">
-            <h4>Kiadási megjegyzések:</h4>
+            <h4>{$t('updater.releaseNotes')}</h4>
             <div class="notes-content">
               {$availableUpdate.body}
             </div>
           </div>
         {:else}
-          <p class="desc">Új verzió tölthető le a Spring Launcher-höz.</p>
+          <p class="desc">{$t('updater.newVersionAvailable')}</p>
         {/if}
 
         {#if errorMessage}
@@ -127,7 +128,7 @@
         {#if isDownloading}
           <div class="progress-section">
             <div class="progress-info">
-              <span>Telepítő letöltése...</span>
+              <span>{$t('updater.downloadingInstaller')}</span>
               <span>{progressPercentage}%</span>
             </div>
             <div class="progress-bar-bg">
@@ -139,7 +140,7 @@
         {#if isInstalled}
           <div class="success-box">
             <CheckCircle2 size={20} />
-            <span>A frissítés sikeresen telepítve! Indítsd újra az alkalmazást.</span>
+            <span>{$t('updater.updateInstalled')}</span>
           </div>
         {/if}
       </div>
@@ -148,18 +149,18 @@
         {#if isInstalled}
           <button class="btn btn-primary" onclick={handleRelaunch}>
             <RefreshCw size={16} />
-            Újraindítás most
+            {$t('updater.relaunchNow')}
           </button>
         {:else if isDownloading}
           <button class="btn btn-disabled" disabled>
             <RefreshCw size={16} class="spinning" />
-            Letöltés folyamatban...
+            {$t('updater.downloading')}
           </button>
         {:else}
-          <button class="btn btn-secondary" onclick={dismiss}>Mégse</button>
+          <button class="btn btn-secondary" onclick={dismiss}>{$t('updater.cancel')}</button>
           <button class="btn btn-primary" onclick={startDownloadAndInstall}>
             <Download size={16} />
-            Frissítés most
+            {$t('updater.updateNow')}
           </button>
         {/if}
       </div>

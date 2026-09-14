@@ -6,6 +6,7 @@
     Trash2, Plus, ArrowLeft, X, Save, FileCode, FileImage, AlertTriangle
   } from 'lucide-svelte';
   import { showNotification } from '../stores/notification';
+  import { t } from '../stores/i18n';
   import { portal } from '../utils/portal';
   import './FileManager.css';
 
@@ -90,7 +91,7 @@
           const content: string = await invoke('read_text_file', { path: file.path });
           editingFile = { path: file.path, name: file.name, content };
         } catch (err) {
-          showNotification('Nem sikerült megnyitni a fájlt.', 'error');
+          showNotification($t('notify.openFolderFailed'), 'error');
         }
       }
     }
@@ -126,16 +127,16 @@
       for (const t of selectedPaths) {
         await invoke('delete_file_item', { path: t });
       }
-      showNotification('Sikeres törlés', 'success');
+      showNotification($t('notify.deleteSuccess'), 'success');
       closeDeleteModal();
       loadFiles(currentPath);
     } catch (err) {
-      showNotification(`Hiba: ${err}`, 'error');
+      showNotification(`${$t('detail.error')}: ${err}`, 'error');
     }
   }
 
   async function handleCreate(isDir: boolean) {
-    const name = prompt(isDir ? 'Mappa neve:' : 'Fájl neve:');
+    const name = prompt(isDir ? $t('fm.folderName') : $t('fm.fileName'));
     if (!name) return;
     try {
       const fullPath = `${currentPath}/${name}`;
@@ -191,18 +192,18 @@
     <div class="fm-actions">
       <div class="new-menu-container">
         <button class="btn-action" onclick={() => (showNewMenu = !showNewMenu)}>
-          <Plus size={18} /><span>Létrehozás</span>
+          <Plus size={18} /><span>{$t('fm.create')}</span>
         </button>
         {#if showNewMenu}
           <div class="fm-dropdown fade-in">
-            <button onclick={() => handleCreate(true)}><Folder size={16} /> Új mappa</button>
-            <button onclick={() => handleCreate(false)}><FileText size={16} /> Új fájl</button>
+            <button onclick={() => handleCreate(true)}><Folder size={16} /> {$t('fm.newFolder')}</button>
+            <button onclick={() => handleCreate(false)}><FileText size={16} /> {$t('fm.newFile')}</button>
           </div>
         {/if}
       </div>
       {#if selectedPaths.length > 0}
         <button class="btn-action danger" onclick={() => (showDeleteModal = true)}>
-          <Trash2 size={18} /><span>Törlés ({selectedPaths.length})</span>
+          <Trash2 size={18} /><span>{$t('fm.delete', { n: selectedPaths.length })}</span>
         </button>
       {/if}
     </div>
@@ -222,17 +223,17 @@
               <span></span>
             </div>
           </th>
-          <th class="col-name">Név</th>
-          <th class="col-size">Méret / Elem</th>
-          <th class="col-modified">Módosítva</th>
+          <th class="col-name">{$t('fm.colName')}</th>
+          <th class="col-size">{$t('fm.colSize')}</th>
+          <th class="col-modified">{$t('fm.colModified')}</th>
           <th class="col-more"></th>
         </tr>
       </thead>
       <tbody>
         {#if loading}
-          <tr><td colspan="5" class="fm-loading">Betöltés...</td></tr>
+          <tr><td colspan="5" class="fm-loading">{$t('fm.loading')}</td></tr>
         {:else if files.length === 0}
-          <tr><td colspan="5" class="fm-empty">A mappa üres</td></tr>
+          <tr><td colspan="5" class="fm-empty">{$t('fm.empty')}</td></tr>
         {:else}
           {#each files as file (file.path)}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -262,7 +263,7 @@
                 </div>
               </td>
               <td class="col-size">
-                {file.is_dir ? `${file.item_count ?? 0} elem` : formatSize(file.size)}
+                {file.is_dir ? $t('fm.items', { n: file.item_count ?? 0 }) : formatSize(file.size)}
               </td>
               <td class="col-modified">
                 {new Date(file.modified * 1000).toLocaleString()}
@@ -287,7 +288,7 @@
           </div>
           <div class="editor-actions">
             <button class="btn-save" onclick={handleSaveFile}>
-              <Save size={18} /> Mentés
+              <Save size={18} /> {$t('fm.save')}
             </button>
             <button class="close-btn" onclick={() => (editingFile = null)} aria-label="Close">
               <X size={20} />
@@ -310,14 +311,14 @@
       <div class="modal-content delete-modal" onclick={(e) => e.stopPropagation()}>
         <div class="modal-header centered">
           <div class="alert-icon-wrapper"><AlertTriangle size={32} /></div>
-          <h2>Fájlok törlése</h2>
+          <h2>{$t('fm.deleteTitle')}</h2>
         </div>
         <p class="modal-desc centered">
-          Biztosan törölni szeretnél <strong>{selectedPaths.length}</strong> elemet?
+          {$t('fm.deleteConfirm', { n: selectedPaths.length })}
         </p>
         <div class="modal-actions spaced">
-          <button class="btn btn-secondary flex-1" onclick={closeDeleteModal}>Mégse</button>
-          <button class="btn btn-danger flex-1" onclick={confirmDelete}>Törlés</button>
+          <button class="btn btn-secondary flex-1" onclick={closeDeleteModal}>{$t('fm.cancel')}</button>
+          <button class="btn btn-danger flex-1" onclick={confirmDelete}>{$t('fm.confirmDelete')}</button>
         </div>
       </div>
     </div>

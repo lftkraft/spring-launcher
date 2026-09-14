@@ -77,6 +77,17 @@
 
 .icon-green { color: var(--accent-green); }
 
+.settings-version-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-green);
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-left: 4px;
+}
+
 .close-btn {
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--border-color);

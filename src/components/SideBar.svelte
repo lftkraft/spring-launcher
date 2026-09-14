@@ -8,6 +8,7 @@
   import CreateInstanceModal from './CreateInstanceModal.svelte';
   import SettingsModal from './SettingsModal.svelte';
   import { portal } from '../utils/portal';
+  import { t } from '../stores/i18n';
   import './SideBar.css';
 
   interface InstanceItem {
@@ -101,45 +102,45 @@
     <a
       href="/"
       class={`sidebar-item ${$page.url.pathname === '/' ? 'active' : ''}`}
-      title="Dashboard"
+      title={$t('nav.dashboard')}
     >
       <LayoutDashboard size={20} />
-      <span>Dashboard</span>
+      <span>{$t('nav.dashboard')}</span>
     </a>
 
     <a
       href="/instances"
       class={`sidebar-item ${$page.url.pathname === '/instances' ? 'active' : ''}`}
-      title="Instances"
+      title={$t('nav.instances')}
     >
       <List size={20} />
-      <span>Instances</span>
+      <span>{$t('nav.instances')}</span>
     </a>
 
     <a
       href="/profiles"
       class={`sidebar-item ${$page.url.pathname === '/profiles' ? 'active' : ''}`}
-      title="Profiles"
+      title={$t('nav.profiles')}
     >
       <Users size={20} />
-      <span>Profiles</span>
+      <span>{$t('nav.profiles')}</span>
     </a>
 
     <a
       href="/mods"
       class={`sidebar-item ${$page.url.pathname === '/mods' ? 'active' : ''}`}
-      title="Mods"
+      title={$t('nav.mods')}
     >
       <Box size={20} />
-      <span>Mods</span>
+      <span>{$t('nav.mods')}</span>
     </a>
   </div>
 
   <div class="sidebar-divider"></div>
 
   <div class="sidebar-section-label">
-    <span>RECENT</span>
-    <button class="add-instance-small-btn" onclick={() => (showCreateModal = true)} title="Create Instance">
+    <span>{$t('sidebar.recent')}</span>
+    <button class="add-instance-small-btn" onclick={() => (showCreateModal = true)} title={$t('sidebar.newInstance')}>
       <Plus size={14} />
     </button>
   </div>
@@ -167,19 +168,22 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="sidebar-item add-btn" onclick={() => (showCreateModal = true)}>
       <Plus size={20} />
-      <span>New Instance</span>
+      <span>{$t('sidebar.newInstance')}</span>
     </div>
   </div>
 
   <div class="sidebar-divider"></div>
 
   <div class="sidebar-footer">
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="sidebar-item" onclick={() => (showSettingsModal = true)} title="Settings">
+    <button
+      type="button"
+      class={`sidebar-item ${showSettingsModal || $page.url.pathname === '/settings' ? 'active' : ''}`}
+      onclick={() => (showSettingsModal = true)}
+      title={$t('sidebar.settings')}
+    >
       <SettingsIcon size={20} />
-      <span>Settings</span>
-    </div>
+      <span>{$t('sidebar.settings')}</span>
+    </button>
   </div>
 </div>
 
@@ -200,7 +204,7 @@
       }}
     >
       <Copy size={15} />
-      <span>Instance duplikálás</span>
+      <span>{$t('sidebar.duplicate')}</span>
     </button>
     <button
       class="context-menu-item"
@@ -217,7 +221,7 @@
       }}
     >
       <Download size={15} />
-      <span>Modok böngészése</span>
+      <span>{$t('sidebar.browseMods')}</span>
     </button>
     {#if contextMenu.instance.game_dir}
       <button
@@ -225,7 +229,7 @@
         onclick={() => openInstanceFolder(contextMenu?.instance.game_dir)}
       >
         <FolderOpen size={15} />
-        <span>Mappa megnyitása</span>
+        <span>{$t('sidebar.openFolder')}</span>
       </button>
     {/if}
   </div>
@@ -249,5 +253,11 @@
       duplicateTarget = null;
       loadInstances();
     }}
+  />
+{/if}
+
+{#if showSettingsModal}
+  <SettingsModal
+    onClose={() => (showSettingsModal = false)}
   />
 {/if}

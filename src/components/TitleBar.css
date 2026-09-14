@@ -54,13 +54,28 @@
 .titlebar-spring { font-weight: 600; color: #4CAF50; }
 .titlebar-launcher { font-weight: 400; color: #ffffff; }
 
+.titlebar-version {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  padding: 1px 6px;
+  border-radius: 6px;
+  margin-left: 4px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
 .titlebar.collapsed .titlebar-spring,
-.titlebar.collapsed .titlebar-launcher {
+.titlebar.collapsed .titlebar-launcher,
+.titlebar.collapsed .titlebar-version {
   opacity: 0 !important;
   transform: translateY(-10px);
   width: 0;
   overflow: hidden;
   margin: 0;
+  padding: 0;
 }
 
 /* ============================================

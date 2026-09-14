@@ -1,6 +1,7 @@
-﻿<script lang="ts">
+<script lang="ts">
   import { Ghost, Plus } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { t } from '../stores/i18n';
   import './NoMods.css';
 </script>
 
@@ -13,14 +14,14 @@
 
     <div class="text-content">
       <h2 class="error-code">404</h2>
-      <h1>Itt nincsenek modok</h1>
-      <p>Úgy tűnik, egy Vanilla instance-et nézel. A vanilla verziók nem támogatják a modokat. Ha modolni szeretnél, hozz létre egy Fabric vagy Forge instance-et!</p>
+      <h1>{$t('noMods.title')}</h1>
+      <p>{$t('noMods.desc')}</p>
     </div>
 
     <div class="no-mods-actions">
       <button class="btn btn-primary" onclick={() => goto('/')}>
         <Plus size={18} />
-        <span>Új instance létrehozása</span>
+        <span>{$t('noMods.createBtn')}</span>
       </button>
     </div>
   </div>

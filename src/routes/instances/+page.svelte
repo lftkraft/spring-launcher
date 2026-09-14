@@ -6,6 +6,7 @@
   import { Trash2, Play, Plus, Search, MoreHorizontal, FolderOpen, Info, Copy, Download } from 'lucide-svelte';
   import CreateInstanceModal from '../../components/CreateInstanceModal.svelte';
   import { showNotification } from '../../stores/notification';
+  import { t } from '../../stores/i18n';
   import './InstancesPage.css';
 
   interface InstanceDisplay {
@@ -71,15 +72,15 @@
 
   async function deleteInstance(id: string, name: string) {
     if (deletingId) return;
-    if (!confirm(`Biztosan törölni szeretnéd a(z) "${name}" instance-t?`)) return;
+    if (!confirm($t('detail.deleteConfirm'))) return;
     deletingId = id;
-    showNotification(`"${name}" törlése folyamatban...`, 'info');
+    showNotification($t('notify.deleting'), 'info');
     try {
       await invoke('delete_instance', { id });
-      showNotification('Instance sikeresen törölve', 'success');
+      showNotification($t('notify.deleteSuccess'), 'success');
       loadInstances();
     } catch (err) {
-      showNotification('Hiba a törlés során', 'error');
+      showNotification($t('notify.errorDelete', { err: String(err) }), 'error');
     } finally {
       deletingId = null;
     }
@@ -93,11 +94,11 @@
   }
 
   function formatPlaytime(seconds?: number) {
-    if (!seconds) return '0 perc';
+    if (!seconds) return $t('time.zeroHours');
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0) return `${h} óra ${m} perc`;
-    return `${m} perc`;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
   }
 
   let filteredInstances = $derived(
@@ -112,8 +113,8 @@
 <div class="instances-page page-container animate-fade-in">
   <div class="instances-header">
     <div class="header-title">
-      <h1>Instance Kezelő</h1>
-      <p>{instances.length} telepített verzió</p>
+      <h1>{$t('instances.title')}</h1>
+      <p>{$t('instances.subtitle')}</p>
     </div>
 
     <div class="search-bar-container">
@@ -121,14 +122,14 @@
         <Search size={18} />
         <input
           type="text"
-          placeholder="Keress az instance-id között..."
+          placeholder={$t('instances.searchPlaceholder')}
           bind:value={searchQuery}
         />
       </div>
     </div>
 
     <div class="header-actions">
-      <button class="new-instance-btn" onclick={() => { duplicateTarget = null; showCreateModal = true; }} title="Új Instance létrehozása">
+      <button class="new-instance-btn" onclick={() => { duplicateTarget = null; showCreateModal = true; }} title={$t('instances.createButton')}>
         <Plus size={28} />
       </button>
     </div>
@@ -136,12 +137,12 @@
 
   <div class="instances-grid">
     {#if loading}
-      <div class="loading-placeholder">Instance-ek betöltése...</div>
+      <div class="loading-placeholder">...</div>
     {:else if filteredInstances.length === 0}
       <div class="empty-state">
         <Search size={64} />
-        <h3>Nincs találat</h3>
-        <p>Próbálj meg más keresési kifejezést vagy hozz létre egy új instance-t.</p>
+        <h3>{$t('instances.emptyTitle')}</h3>
+        <p>{$t('instances.emptySub')}</p>
       </div>
     {:else}
       {#each filteredInstances as instance (instance.id)}
@@ -165,17 +166,17 @@
           {#if hoverInfo === instance.id}
             <div class="instance-popover fade-in">
               <div class="popover-item">
-                <span class="popover-label">Létrehozva</span>
+                <span class="popover-label">{$t('detail.created')}</span>
                 <span class="popover-value">{new Date(instance.created).toLocaleDateString()}</span>
               </div>
               <div class="popover-item">
-                <span class="popover-label">Utoljára játszva</span>
+                <span class="popover-label">{$t('detail.lastPlayed')}</span>
                 <span class="popover-value">
-                  {instance.last_played ? new Date(instance.last_played).toLocaleDateString() : 'Soha'}
+                  {instance.last_played ? new Date(instance.last_played).toLocaleDateString() : $t('time.never')}
                 </span>
               </div>
               <div class="popover-item">
-                <span class="popover-label">Játékidő</span>
+                <span class="popover-label">{$t('dash.playtime')}</span>
                 <span class="popover-value">{formatPlaytime(instance.playtime)}</span>
               </div>
             </div>
@@ -220,7 +221,7 @@
                     }}
                   >
                     <Copy size={16} />
-                    <span>Duplikálás</span>
+                    <span>{$t('sidebar.duplicate')}</span>
                   </button>
                   <button
                     class="dropdown-item"
@@ -230,18 +231,18 @@
                     }}
                   >
                     <Download size={16} />
-                    <span>Modok böngészése</span>
+                    <span>{$t('sidebar.browseMods')}</span>
                   </button>
                   <button class="dropdown-item" onclick={() => openFolder(instance.game_dir)}>
                     <FolderOpen size={16} />
-                    <span>Mappa megnyitása</span>
+                    <span>{$t('sidebar.openFolder')}</span>
                   </button>
                   <button
                     class="dropdown-item danger"
                     onclick={() => deleteInstance(instance.id, instance.name)}
                   >
                     <Trash2 size={16} />
-                    <span>Törlés</span>
+                    <span>{$t('detail.delete')}</span>
                   </button>
                 </div>
               {/if}
@@ -252,7 +253,7 @@
               onclick={() => goto(`/instance/${instance.id}`)}
             >
               <Play size={18} fill="currentColor" />
-              <span style="margin-left: 8px; font-weight: bold;">JÁTÉK</span>
+              <span style="margin-left: 8px; font-weight: bold;">{$t('dash.launch')}</span>
             </button>
           </div>
         </div>
