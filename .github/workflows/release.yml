@@ -48,3 +48,4 @@ jobs:
           releaseBody: "Új verzió kiadás! Lásd a változások listáját."
           releaseDraft: false
           prerelease: false
+          includeUpdaterJson: true
