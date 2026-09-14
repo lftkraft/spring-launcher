@@ -348,6 +348,10 @@ export const translations = {
     'settings.cancel': 'Cancel',
     'settings.saving': 'Saving...',
     'settings.saveSuccess': 'Settings saved successfully!',
+    'settings.about': 'About Spring Launcher',
+    'settings.website': 'Website',
+    'settings.authors': 'Authors',
+    'settings.discord': 'Discord',
 
     // Add Server Modal
     'addServer.title': 'Add Server',
@@ -778,6 +782,10 @@ export const translations = {
     'settings.cancel': 'Mégse',
     'settings.saving': 'Mentés...',
     'settings.saveSuccess': 'Beállítások sikeresen elmentve!',
+    'settings.about': 'Spring Launcher Névjegy',
+    'settings.website': 'Weboldal',
+    'settings.authors': 'Fejlesztők',
+    'settings.discord': 'Discord',
 
     // Add Server Modal
     'addServer.title': 'Szerver Hozzáadása',
@@ -1208,6 +1216,10 @@ export const translations = {
     'settings.cancel': 'Abbrechen',
     'settings.saving': 'Speichern...',
     'settings.saveSuccess': 'Einstellungen erfolgreich gespeichert!',
+    'settings.about': 'Über Spring Launcher',
+    'settings.website': 'Webseite',
+    'settings.authors': 'Entwickler',
+    'settings.discord': 'Discord',
 
     // Add Server Modal
     'addServer.title': 'Server hinzufügen',

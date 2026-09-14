@@ -195,6 +195,56 @@
 .setting-row { display: flex; gap: 20px; }
 .setting-row .half { flex: 1; }
 
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  margin-top: 12px;
+}
+
+.about-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.about-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.about-value {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 500;
+}
+
+.link-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-green);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.2s ease;
+  width: fit-content;
+}
+
+.link-btn:hover {
+  opacity: 0.8;
+}
+
 .settings-footer {
   display: flex;
   justify-content: flex-end;

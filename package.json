@@ -1,7 +1,9 @@
 {
   "name": "spring-launcher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Spring Launcher",
+  "author": "krisz, resokrisz",
+  "homepage": "https://coolnw.eu/springlauncher",
   "type": "module",
   "scripts": {
     "dev": "vite dev",

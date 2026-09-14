@@ -94,6 +94,7 @@ pub fn run() {
 
             // Utils & Files
             utils::open_folder,
+            utils::open_url,
             utils::select_folder,
             utils::select_file,
             utils::get_screenshots,

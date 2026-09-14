@@ -22,6 +22,11 @@ pub fn open_folder(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn open_url(url: String) -> Result<(), String> {
+    open::that(url).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn select_folder() -> Result<Option<String>, String> {
     Ok(FileDialog::new().pick_folder().map(|p| p.to_string_lossy().to_string()))
 }

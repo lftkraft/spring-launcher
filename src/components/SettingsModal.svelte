@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { invoke } from '@tauri-apps/api/core';
   import { getVersion } from '@tauri-apps/api/app';
-  import { X, FolderOpen, Save, HardDrive, Cpu, Languages, Settings as SettingsIcon } from 'lucide-svelte';
+  import { X, FolderOpen, Save, HardDrive, Cpu, Languages, Settings as SettingsIcon, Globe, MessageSquare, Users, Info } from 'lucide-svelte';
   import { portal } from '../utils/portal';
   import { t, setLanguage, type Language } from '../stores/i18n';
   import './SettingsModal.css';
@@ -82,6 +82,14 @@
       }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async function openExternalUrl(url: string) {
+    try {
+      await invoke('open_url', { url });
+    } catch (err) {
+      window.open(url, '_blank');
     }
   }
 </script>
@@ -221,6 +229,31 @@
               <select id="theme-select" bind:value={settings.theme} disabled>
                 <option value="dark">{$t('settings.themeDark')}</option>
               </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <div class="section-label">
+            <Info size={18} />
+            <span>{$t('settings.about')}</span>
+          </div>
+          <div class="about-grid">
+            <div class="about-item">
+              <span class="about-label"><Globe size={14} /> {$t('settings.website')}</span>
+              <button type="button" class="link-btn" onclick={() => openExternalUrl('https://coolnw.eu/springlauncher')}>
+                coolnw.eu/springlauncher
+              </button>
+            </div>
+            <div class="about-item">
+              <span class="about-label"><MessageSquare size={14} /> {$t('settings.discord')}</span>
+              <button type="button" class="link-btn" onclick={() => openExternalUrl('https://dc.coolnw.eu')}>
+                dc.coolnw.eu
+              </button>
+            </div>
+            <div class="about-item">
+              <span class="about-label"><Users size={14} /> {$t('settings.authors')}</span>
+              <span class="about-value">krisz, resokrisz</span>
             </div>
           </div>
         </section>
